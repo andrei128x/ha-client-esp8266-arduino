@@ -1,3 +1,4 @@
+#include "global.h"
 #include "system.h"
 #include "sensors.h"
 #include "com.h"
@@ -17,8 +18,6 @@
 
 /*------------ VARIABLES -------------- */
 
-const char* ssid = ".....";
-const char* password = ".....";
 const char* host = "OTA-LEDS";
 
 #if defined(SELF_ACCESS_POINT) && (SELF_ACCESS_POINT == true)
