@@ -15,7 +15,7 @@ unsigned long u32WarmResetTimeDelta = 0;
 unsigned long long msUptime __attribute__ ((section (".noinit")));
 
 unsigned long u32WarmResetPattern __attribute__ ((section (".noinit")));
-unsigned long u32ResetType = 0x434F4C44;	/* defaults to COLD reset */
+unsigned long u32ResetType = *((int*)"DLOC");	/* defaults to COLD reset, reversed due to endianness */
 
 /* ----------- FUNCTIONS -------------- */
 
@@ -50,7 +50,7 @@ void getSystemUptime(String *result)
 	if (seconds.length() < 2)
 		seconds = "0" + seconds;
 
-	*result += " " + days + "-" + hours + ":" + minutes + ":" + seconds;
+	*result += days + "." + hours + ":" + minutes + ":" + seconds;
 }
 
 /* set state for Activity LED behaviour */
@@ -89,10 +89,13 @@ void handleActivityLED()
 
 void checkWarmFlag()
 {
+
+  Serial.println(u32WarmResetPattern);
+	
 	/* WARM reset not found */
-	if(u32WarmResetPattern != 0x5741524D)
+	if(u32WarmResetPattern != *((int*)"MRAW"))
 	{
-		u32WarmResetPattern = 0x5741524D;	/* update pattern in ResetSafe to WARM */
+		u32WarmResetPattern = *((int*)"MRAW");	/* update pattern in ResetSafe to WARM, reversed due to endianness */
 		msUptime = 0;
 	}else{	/* WARM reset found here */
 		u32WarmResetTimeDelta = msUptime;

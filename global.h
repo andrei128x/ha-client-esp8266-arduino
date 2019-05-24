@@ -12,8 +12,10 @@ typedef enum {
 
 
 /* ----------- VARIABLES sections ------------- */
-extern const char* ssid;
-extern const char* password;
+
+extern const char* global_host;
+extern const char* global_ssid;
+extern const char* global_password;
 
 /* ----------- FUNCTIONS section -------------- */
 

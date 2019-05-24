@@ -9,7 +9,7 @@
 #include <ESP8266WebServer.h>
 
 /*------------ MACROS -------------- */
-#define SELF_ACCESS_POINT	false
+#define DEV_SELFT_ACCESS_POINT	false
 #define USE_ACTIVITY_LED	false
 
 #define ONBOARD_LED D4
@@ -18,9 +18,7 @@
 
 /*------------ VARIABLES -------------- */
 
-const char* host = "OTA-TEMP";
-
-#if defined(SELF_ACCESS_POINT) && (SELF_ACCESS_POINT == true)
+#if defined(DEV_SELFT_ACCESS_POINT) && (DEV_SELFT_ACCESS_POINT == true)
 const char *ssidAP = "ESPap";
 const char *passwordAP = "thereisnospoon";
 #endif
@@ -28,10 +26,11 @@ const char *passwordAP = "thereisnospoon";
 /* ------------ SETUP FUNCTION --------------- */
 void setup()
 {
+
+  Serial.begin(115200);
+  
 	/* check for Warm Reset and update timestamp with Reset Safe's content */
 	checkWarmFlag();
-
-	Serial.begin(115200);
 
 	/* switch on led */
 	pinMode(ONBOARD_LED, OUTPUT);
@@ -40,22 +39,20 @@ void setup()
 	Serial.println("Booting");
 	WiFi.mode(WIFI_STA);
 
-	WiFi.begin(ssid, password);
+	WiFi.begin(global_ssid, global_password);
 
 	while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-		WiFi.begin(ssid, password);
+		WiFi.begin(global_ssid, global_password);
 		Serial.println("Retrying connection...");
 	}
 	/* switch off led */
 	digitalWrite(ONBOARD_LED, HIGH);
 
-	startOTA(host);
-
 	/* print local IP */
 	IPAddress myIP = WiFi.localIP();
 	Serial.println(myIP);
 
-#if defined(SELF_ACCESS_POINT) && (SELF_ACCESS_POINT == true)
+#if defined(DEV_SELFT_ACCESS_POINT) && (DEV_SELFT_ACCESS_POINT == true)
 #error "section disabled"
 	WiFi.softAP(ssidAP, passwordAP);
 	IPAddress myIP = WiFi.softAPIP();
@@ -64,7 +61,7 @@ void setup()
 #endif
 
 	/* setup the OTA server */
-	startOTA(host);
+	startOTA(global_host);
 
 	/* start sensors */
 	initTempSensor();
@@ -88,7 +85,7 @@ void setup()
 // task processing function (pseudo-scheduler)
 void vDoHadleTasks()
 {
-	static boolean pin_level = LOW;
+	//static boolean pin_level = LOW;
 	static unsigned long saved_time = 0; // first task starts as soon as possible
 
 	unsigned long current_time = millis();
@@ -113,6 +110,8 @@ void vDoHadleTasks()
 
 		updateMotorSpeed();
 		//Serial.printf("%d ms\n",saved_time);
+
+		//sendWakeOnLan();
 	}
 }
 
@@ -131,4 +130,3 @@ void loop()
 }
 
 /* ----------------END APPLICATION -------------- */
-

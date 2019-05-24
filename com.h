@@ -11,12 +11,15 @@
 
 #include "global.h"
 
+extern void sendWakeOnLan();
+
 extern void cyclicHandleOTA();
 extern void startOTA(const char *host);
 
 
 extern void initWebServer();
 extern void cyclicHandleWebRequests();
+extern void serverHandleJsonRequest();
 
 
 /* -- no code below this line */
