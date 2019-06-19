@@ -3,6 +3,7 @@
 #include "system.h"
 #include "sensors.h"
 #include "com.h"
+#include "gate_controlller.h"
 
 #include <WiFiUdp.h>
 
@@ -30,7 +31,6 @@ ESP8266WebServer server(HTTP_PORT);
 /* ----------- FUNCTIONS -------------- */
 
 /* --- local functions --- */
-
 #if defined(DEV_WAKE_ON_LAN) && (DEV_WAKE_ON_LAN == true)
 void sendWakeOnLan()
 {
@@ -43,25 +43,6 @@ void sendWakeOnLan()
   Udp.endPacket();
 }
 #endif
-
-
-void onStartOTA()
-{
-	// switch off all the PWMs during upgrade
-	//	for (int i = 0; i < N_DIMMERS; i++)
-	//		analogWrite(dimmer_pin[i], 0);
-	//analogWrite(led_pin,0);
-}
-
-void onEndOTA()
-{
-	// do a fancy thing with our board led at end
-	for (int i = 0; i < 30; i++) {
-		//analogWrite(led_pin,(i*100) % 1001);
-		delay(50);
-	}
-
-}
 
 void serverHandleRootURI()
 {
@@ -88,7 +69,7 @@ void serverHandleRootURI()
 	response += "</p>\n";
 
 
-	response += "		<p>Device IP: " + server.global_hostHeader() + "</p>\n";
+	response += "		<p>Device IP: " + server.hostHeader() + "</p>\n";
 	//u32AsciiToString(&response, server.global_hostHeader());
 
 	response += "		<p>Last reset type: ";
@@ -115,45 +96,75 @@ void serverHandleJsonRequest()
 	setActivityStateLED(ACTIVITY_START);
 }
 
-
-/* --- EXTERN functions --- */
-void startOTA(const char *host)
+void serverHandleServoClickRequest()
 {
-
-	/* configure dimmers, and OTA server events */
-	analogWriteRange(1000);
-	//analogWrite(led_pin,990);
-
-	for (int i = 0; i < N_DIMMERS; i++) {
-		pinMode(dimmer_pin[i], OUTPUT);
-		analogWrite(dimmer_pin[i], 50);
-	}
-
-	ArduinoOTA.setglobal_hostname(host);
-	ArduinoOTA.onStart(onStartOTA);
-
-	ArduinoOTA.onEnd(onEndOTA);
-
-	ArduinoOTA.onError([](ota_error_t error) {ESP.restart();});
-
-	ArduinoOTA.begin();
+	doClickButton(10);
+	server.send(200, "application/json", "{ \"response\":\"[OK]\" }");
 }
 
-void cyclicHandleOTA()
-{
-	ArduinoOTA.handle();
-}
 
+/* init function for http microservice */
 void initWebServer()
 {
+	/* information APIs */
 	server.on("/info", serverHandleRootURI);
 	server.on("/info.json", serverHandleJsonRequest);
+
+	/* servo position APIs */
+	server.on("/servo/click", serverHandleServoClickRequest);
+
 	server.begin();
 	Serial.println("HTTP server started");
 }
 
+/* mandatory cycle function for http service */
 void cyclicHandleWebRequests()
 {
 	server.handleClient();
 }
 
+
+
+/* --- hooks for OTA functions --- */
+void onStartOTA()
+{
+	// switch off all the PWMs during upgrade
+	//	for (int i = 0; i < N_DIMMERS; i++)
+	//		analogWrite(dimmer_pin[i], 0);
+	//analogWrite(led_pin,0);
+
+	/* reset servo position */
+	setServoPosition(0);
+}
+
+void onEndOTA()
+{
+	// do a fancy thing with our board led at end
+	// for (int i = 0; i < 30; i++) {
+	// 	//analogWrite(led_pin,(i*100) % 1001);
+	// 	delay(50);
+	// }
+
+}
+
+
+void startOTA(const char *host)
+{
+	ArduinoOTA.setHostname(host);
+	//ArduinoOTA.setPassword((const char *)"1234");	// set password for OTA programming
+
+	ArduinoOTA.onStart(onStartOTA);
+	ArduinoOTA.onEnd(onEndOTA);
+	ArduinoOTA.onError([](ota_error_t error) {ESP.restart();});
+
+	ArduinoOTA.begin();
+}
+
+
+
+
+/* mandatory cyclic function for OTA reprogramming */
+void cyclicHandleOTA()
+{
+	ArduinoOTA.handle();
+}

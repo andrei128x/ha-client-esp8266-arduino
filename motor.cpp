@@ -44,9 +44,12 @@ void updateMotorSpeed() {
 	if (esc_ready == state) {
 		int val = ESC_MIN_VAL + (1000-ESC_MIN_VAL)*(tempC-24)/3;
 		firstESC.writeMicroseconds((int) val);
+
+		Serial.print("Computed PWM value: "); 
 		Serial.println(val);
 	}
 
 	Serial.print("esc state: ");
 	Serial.println(state);
+	Serial.println();
 }

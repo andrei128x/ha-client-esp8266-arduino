@@ -1,6 +1,6 @@
 /* FUNCTIONS unit */
 #ifndef _MOTOR_H
-	#define _MOTOR_H
+#define _MOTOR_H
 
 /* ----------- DEFINES ------------- */
 

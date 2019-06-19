@@ -3,10 +3,12 @@
 #include "sensors.h"
 #include "com.h"
 #include "motor.h"
+#include "gate_controlller.h"
 
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <ESP8266WebServer.h>
+#include "secure_rand.h"
 
 /*------------ MACROS -------------- */
 #define DEV_SELFT_ACCESS_POINT	false
@@ -36,7 +38,7 @@ void setup()
 	pinMode(ONBOARD_LED, OUTPUT);
 	digitalWrite(ONBOARD_LED, LOW);
 
-	Serial.println("Booting");
+	Serial.println("\nBooting...\n");
 	WiFi.mode(WIFI_STA);
 
 	WiFi.begin(global_ssid, global_password);
@@ -69,18 +71,28 @@ void setup()
 	/* init motor ESC */
 	initMotorControl();
 
-	/* init the web server*/
+	/* init servo for the gate controller */
+	initServo();
+
+	/* init the web server */
 	initWebServer();
 
+	/* init the SECURE RANDOM module */
+	void vInitADC();
+
+
 	/* CONFIG FINISHED */
-	Serial.println("Ready");
+	Serial.println("Ready\n");
 
 	/* reset soft AP */
 	//WiFi.softAPdisconnect(true);
 	//WiFi.enableAP(false);
+	
 }
+/* --------- END OF SETUP FUNCTION ------------ */
 
-/*------------ HELPER FUNCTIONS -------------- */
+
+/* ------------ HELPER FUNCTIONS -------------- */
 
 // task processing function (pseudo-scheduler)
 void vDoHadleTasks()
@@ -106,17 +118,26 @@ void vDoHadleTasks()
 		//Serial.println(timestamp);
 
 		updateTemp();
+		Serial.print("Temperature: ");
 		Serial.println(temperatureCString);
 
-		updateMotorSpeed();
+		/* update servo state machine */
+		cycleHandleServo();
+
+		//updateMotorSpeed();	//motor features NOT integrated
 		//Serial.printf("%d ms\n",saved_time);
 
 		//sendWakeOnLan();
+
+		Serial.print("ADC value: "); 
+		getSeed();
+		Serial.println();
 	}
 }
+/* -------- END OF HELPER FUNCTIONS -------- */
 
 
-/*------------ MAIN FUNCTION -------------- */
+/* ------------ MAIN FUNCTION -------------- */
 void loop()
 {
 
@@ -124,7 +145,7 @@ void loop()
 	cyclicHandleOTA();
 	cyclicHandleWebRequests();
 
-	/* ---- customer section ----------*/
+	/* ---- customer section ---------- */
 	vDoHadleTasks();
 
 }
