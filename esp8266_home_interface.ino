@@ -11,7 +11,7 @@
 #include "secure_rand.h"
 
 /*------------ MACROS -------------- */
-#define DEV_SELFT_ACCESS_POINT	false
+#define DEV_SELF_ACCESS_POINT	false
 #define USE_ACTIVITY_LED	false
 
 #define ONBOARD_LED D4
@@ -20,7 +20,7 @@
 
 /*------------ VARIABLES -------------- */
 
-#if defined(DEV_SELFT_ACCESS_POINT) && (DEV_SELFT_ACCESS_POINT == true)
+#if defined(DEV_SELF_ACCESS_POINT) && (DEV_SELF_ACCESS_POINT == true)
 const char *ssidAP = "ESPap";
 const char *passwordAP = "thereisnospoon";
 #endif
@@ -54,7 +54,7 @@ void setup()
 	IPAddress myIP = WiFi.localIP();
 	Serial.println(myIP);
 
-#if defined(DEV_SELFT_ACCESS_POINT) && (DEV_SELFT_ACCESS_POINT == true)
+#if defined(DEV_SELF_ACCESS_POINT) && (DEV_SELF_ACCESS_POINT == true)
 #error "section disabled"
 	WiFi.softAP(ssidAP, passwordAP);
 	IPAddress myIP = WiFi.softAPIP();

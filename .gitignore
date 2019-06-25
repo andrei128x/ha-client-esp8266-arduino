@@ -1,2 +1,3 @@
 .project
+.vscode/*.bin
 global_do_not_share.cpp
