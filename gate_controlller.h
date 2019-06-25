@@ -11,6 +11,8 @@
 
 /* ----------- FUNCTIONS section -------------- */
 extern void initServo();
+extern void stopServo();
+
 extern void setServoPosition(int value);
 extern void doClickButton(int timeLength);
 void cycleHandleServo();

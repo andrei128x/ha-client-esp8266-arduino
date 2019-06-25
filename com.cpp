@@ -98,7 +98,7 @@ void serverHandleJsonRequest()
 
 void serverHandleServoClickRequest()
 {
-	doClickButton(10);
+	doClickButton(15);		// no. of cycles the button is kept pressed; 10ms or 100ms cycles
 	server.send(200, "application/json", "{ \"response\":\"[OK]\" }");
 }
 

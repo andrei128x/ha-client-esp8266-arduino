@@ -27,6 +27,11 @@ void initServo()
     servoState = servo_up;
 }
 
+void stopServo()
+{
+    myservo.detach();
+};
+
 /* immediately set servo position */
 void setServoPosition(int value)
 {
@@ -41,7 +46,8 @@ void setServoPosition(int value)
 void doClickButton(int timeLength)
 {
     /* move the servo to  */
-    setServoPosition(55);
+    //setServoPosition(55);
+    setServoPosition(50);
     servoState = servo_down;
 
     /* start timeout timer */
@@ -56,7 +62,8 @@ void cycleHandleServo()
         if(timer == 0){
             /* timer reached stop state, move servo to resting state */
             setServoPosition(0);
-            servoState = servo_up;
+            //stopServo();
+
         }
     }
 
