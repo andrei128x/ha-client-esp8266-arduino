@@ -1,3 +1,6 @@
+#include "system.h"
+#if defined(ENABLE_MODULE_MOTOR) && (ENABLE_MODULE_MOTOR == true)
+
 /* FUNCTIONS unit */
 #include "sensors.h"
 #include <Servo.h>
@@ -53,3 +56,6 @@ void updateMotorSpeed() {
 	Serial.println(state);
 	Serial.println();
 }
+
+/* ---END OF FILE --- */
+#endif

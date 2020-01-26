@@ -1,6 +1,6 @@
 /* FUNCTIONS unit */
-#ifndef _COM_H
-	#define _COM_H
+#ifndef _OTA_H
+	#define _OTA_H
 
 #include <Arduino.h>
 
@@ -11,15 +11,9 @@
 
 #include "global.h"
 
-extern void sendWakeOnLan();
 
-extern void initCOM();
-extern void initWebServer();
-extern void cyclicHandleWebRequests();
-extern void cyclicHandleRxUDP();
-
-
-extern void sendAdcSensorData();
+extern void cyclicHandleOTA();
+extern void startOTA(const char *host);
 
 /* -- no code below this line */
 #endif

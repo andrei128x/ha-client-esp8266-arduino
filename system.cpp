@@ -7,8 +7,6 @@
 #define MIN_TO_H	(60)
 #define H_TO_DAY	(24)
 
-#define ONBOARD_LED D4
-
 /*------------ VARIABLES -------------- */
 activityState_type activityState = ACTIVITY_NO_INIT;
 unsigned long u32WarmResetTimeDelta = 0;
@@ -17,6 +15,7 @@ unsigned long long msUptime __attribute__ ((section (".noinit")));
 unsigned long u32WarmResetPattern __attribute__ ((section (".noinit")));
 unsigned long u32ResetType = *((int*)"DLOC");	/* defaults to COLD reset, reversed due to endianness */
 
+extern long taskCnt = 0;
 /* ----------- FUNCTIONS -------------- */
 
 /* --- uptime calculation --- */
@@ -63,8 +62,8 @@ void setActivityStateLED(activityState_type state)
 void handleActivityLED()
 {
 
-	const int MAXCOUNT = 25;
-	static unsigned char pin_level = HIGH;
+	const int MAXCOUNT = 10;
+	static unsigned char pin_level = LOW;	// active LOW
 	static int counter = 0;
 
 	// start blinking for a specific interval
@@ -81,6 +80,9 @@ void handleActivityLED()
 			pin_level = HIGH;
 		}
 	}
+
+	// Serial.print("LED");
+	// Serial.print(pin_level);
 
 	digitalWrite(ONBOARD_LED, (boolean) pin_level);
 

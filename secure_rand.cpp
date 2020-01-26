@@ -1,3 +1,6 @@
+#include "system.h"
+#if defined(ENABLE_MODULE_RAND) && (ENABLE_MODULE_RAND == true)
+
 /* FUNCTIONS unit */
 /* PURPOSE: seed generator, based on the ESP8266's ADC */
 #include "secure_rand.h"
@@ -46,7 +49,5 @@ unsigned short getSeed(){
     return(analogVal);
 }
 
-
-
-
 /* ---END OF FILE --- */
+#endif

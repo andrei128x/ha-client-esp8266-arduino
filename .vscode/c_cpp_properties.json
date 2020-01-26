@@ -3,8 +3,9 @@
         {
             "name": "Win32",
             "includePath": [
-                "c:\\Users\\Andrei\\Documents\\Arduino\\**",
-                "C:\\Users\\Andrei\\Documents\\ArduinoData\\packages\\**",
+                "C:/Users/Andrei/Documents/ArduinoData/packages/esp8266/hardware/esp8266/2.5.0/variants/**",
+                "c:/Users/Andrei/Documents/Arduino/**",
+                "C:/Users/Andrei/Documents/ArduinoData/packages/**",
                 "${workspaceFolder}/**"
             ],
             "defines": [
@@ -12,7 +13,7 @@
                 "UNICODE",
                 "_UNICODE"
             ],
-            "intelliSenseMode": "gcc-x64",
+            "intelliSenseMode": "${default}",
             "forcedInclude": []
         }
     ],

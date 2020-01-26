@@ -1,3 +1,6 @@
+#include "system.h"
+#if defined(ENABLE_MODULE_COM) && (ENABLE_MODULE_COM == true)
+
 /* FUNCTIONS unit */
 #include "global.h"
 #include "system.h"
@@ -6,48 +9,53 @@
 #include "gate_controlller.h"
 
 #include <WiFiUdp.h>
-
+#include <ESP8266WiFi.h>
 
 /* ----------- DEFINES ------------- */
 #define DEV_WAKE_ON_LAN false
 
-#define N_DIMMERS 3
 #define HTTP_PORT 80
+#define UDP_PORT 2001
 
 /*------------ VARIABLES -------------- */
-int dimmer_pin[] = { 14, 5, 15 };
-
+WiFiUDP udpModule;
 #if defined(DEV_WAKE_ON_LAN) && (DEV_WAKE_ON_LAN == true)
-WiFiUDP Udp;
 
 byte fill[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 //byte mac[] = { 0x00, 0x1b, 0x38, 0x3d, 0xa5, 0x04 };
-byte mac[] = { 0x00, 0x19, 0x99, 0xff, 0x69, 0x2b };
+byte mac[] = {0x00, 0x19, 0x99, 0xff, 0x69, 0x2b};
 #endif
 
 ESP8266WebServer server(HTTP_PORT);
+static char incomingPacket[2048];		 // buffer for incoming packets
 
+String jsonData;
 
 /* ----------- FUNCTIONS -------------- */
 
 /* --- local functions --- */
+void initCOM()
+{
+	// set up UDP protocol
+	udpModule.begin(40000);
+}
+
 #if defined(DEV_WAKE_ON_LAN) && (DEV_WAKE_ON_LAN == true)
 void sendWakeOnLan()
 {
-	Udp.beginPacket("192.168.100.3", 0x69 );
-	Udp.write(fill, 6);
-	for(int i=0; i<16; i++)
+	udpModule.beginPacket("192.168.100.3", 0x69);
+	udpModule.write(fill, 6);
+	for (int i = 0; i < 16; i++)
 	{
-		Udp.write(mac, 6);
+		udpModule.write(mac, 6);
 	}
-  Udp.endPacket();
+	udpModule.endPacket();
 }
 #endif
 
 void serverHandleRootURI()
 {
 	String response;
-	updateTemp();
 
 	response = "<!doctype html>\n\
 <html lang=\"en\">\n\
@@ -68,7 +76,6 @@ void serverHandleRootURI()
 	getSystemUptime(&response);
 	response += "</p>\n";
 
-
 	response += "		<p>Device IP: " + server.hostHeader() + "</p>\n";
 	//u32AsciiToString(&response, server.global_hostHeader());
 
@@ -81,27 +88,35 @@ void serverHandleRootURI()
 	setActivityStateLED(ACTIVITY_START);
 }
 
-
 void serverHandleJsonRequest()
 {
 	String response;
-	updateTemp();
-	response = "{\"temperature\":\"";	response += temperatureCString;	response += "\", \"uptime\":\"";
+
+	response = "{\"temperature\":\"";
+	response += temperatureCString;
+	response += "\", \"uptime\":\"";
 
 	getSystemUptime(&response);
 
-	response += "\", \"reset\":\""; u32AsciiToString(&response, u32ResetType); response += "\"}";
+	response += "\", \"reset\":\"";
+	u32AsciiToString(&response, u32ResetType);
+	response += "\"}";
 
 	server.send(200, "application/json", response);
 	setActivityStateLED(ACTIVITY_START);
 }
 
+#if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 void serverHandleServoClickRequest()
 {
-	doClickButton(15);		// no. of cycles the button is kept pressed; 10ms or 100ms cycles
+	doClickButton(15); // no. of cycles the button is kept pressed; 10ms or 100ms cycles
 	server.send(200, "application/json", "{ \"response\":\"[OK]\" }");
 }
+#endif
 
+void serverHandleSetForwardingIP()
+{
+}
 
 /* init function for http microservice */
 void initWebServer()
@@ -110,8 +125,14 @@ void initWebServer()
 	server.on("/info", serverHandleRootURI);
 	server.on("/info.json", serverHandleJsonRequest);
 
+#if defined(ENABLE_MODULE_UDP_ADC_FORWARD) && (ENABLE_MODULE_UDP_ADC_FORWARD == true)
+	server.on("/set-forward-ip", serverHandleSetForwardingIP);
+#endif
+
+#if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 	/* servo position APIs */
 	server.on("/servo/click", serverHandleServoClickRequest);
+#endif
 
 	server.begin();
 	Serial.println("HTTP server started");
@@ -121,50 +142,79 @@ void initWebServer()
 void cyclicHandleWebRequests()
 {
 	server.handleClient();
+
 }
 
-
-
-/* --- hooks for OTA functions --- */
-void onStartOTA()
+void cyclicHandleRxUDP()
 {
-	// switch off all the PWMs during upgrade
-	//	for (int i = 0; i < N_DIMMERS; i++)
-	//		analogWrite(dimmer_pin[i], 0);
-	//analogWrite(led_pin,0);
 
-	/* reset servo position */
-	setServoPosition(0);
+	int packetSize = udpModule.parsePacket();
+	if (packetSize)
+	{
+		// receive incoming UDP packets
+		// Serial.printf("Received %d bytes from %s, port %d\n", packetSize, Udp.remoteIP().toString().c_str(), Udp.remotePort());
+		int len = udpModule.read(incomingPacket, packetSize);
+		if (len > 0)
+		{
+			incomingPacket[len] = 0;
+		}
+	}
 }
 
-void onEndOTA()
+
+void sendAdcSensorData()
 {
-	// do a fancy thing with our board led at end
-	// for (int i = 0; i < 30; i++) {
-	// 	//analogWrite(led_pin,(i*100) % 1001);
-	// 	delay(50);
-	// }
+	static char cycle = 0;
+	char data[255];
 
+	static unsigned int localUdpPort = 4210; // local port to listen on
+	
+
+	static unsigned int idx = 0;
+
+	if (cycle == 0)
+	{
+		jsonData = "{ \"ADC0\":$1, \"ADC1\":$2, \"avg0\":$3, \"avg1\":$4, \"read0\":$5, \"read1\":$6 }";
+		//jsonData = "{ \"ADC0\":1, \"ADC1\":2, \"avg0\":3, \"avg1\":4, \"read0\":5, \"read1\":6 }";
+
+		jsonData.replace("$1", String(computedADC0, DEC));
+		jsonData.replace("$2", String(computedADC1, DEC));
+		jsonData.replace("$3", String((int)avg0, DEC));
+		jsonData.replace("$4", String((int)avg0, DEC));
+		jsonData.replace("$5", String(readVal0, DEC));
+		jsonData.replace("$6", String(readVal1, DEC));
+
+		// jsonData.toCharArray(data, jsonData.length() + 1);
+
+		// data[jsonData.length() + 1] = 0;
+		int result;
+		if (WiFi.status() == WL_CONNECTED)
+		{
+			udpModule.beginPacket("192.168.100.17", UDP_PORT);
+			udpModule.write(jsonData.c_str(), jsonData.length());
+			result = udpModule.endPacket();
+		}
+
+		if (result)
+			setActivityStateLED(ACTIVITY_START);
+		else
+			setActivityStateLED(ACTIVITY_STOPPED);
+
+		// Serial.print(result);
+		// Serial.print(" ");
+		// Serial.print(WiFi.status());
+		// Serial.print(" ");
+
+		if (WiFi.status() != WL_CONNECTED)
+		{
+			WiFi.begin(global_ssid, global_password);
+			Serial.println(".");
+		}
+	}
+
+	cycle = (cycle + 1) % 25; // print every Nth task
+	idx++;
 }
 
-
-void startOTA(const char *host)
-{
-	ArduinoOTA.setHostname(host);
-	//ArduinoOTA.setPassword((const char *)"1234");	// set password for OTA programming
-
-	ArduinoOTA.onStart(onStartOTA);
-	ArduinoOTA.onEnd(onEndOTA);
-	ArduinoOTA.onError([](ota_error_t error) {ESP.restart();});
-
-	ArduinoOTA.begin();
-}
-
-
-
-
-/* mandatory cyclic function for OTA reprogramming */
-void cyclicHandleOTA()
-{
-	ArduinoOTA.handle();
-}
+/* ---END OF FILE --- */
+#endif

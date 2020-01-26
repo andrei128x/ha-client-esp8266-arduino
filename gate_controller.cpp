@@ -1,3 +1,6 @@
+#include "system.h"
+#if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
+
 /* FUNCTIONS unit */
 #include "gate_controlller.h"
 #include <Servo.h>
@@ -6,18 +9,21 @@
 
 #define ONBOARD_SERVO D2
 
-#define SERVO_CLICK_LENGTH  1000    // 1000ms for the servo's click operation
+#define SERVO_CLICK_LENGTH 1200 // 1000ms for the servo's click operation
 
-typedef enum {
-	servo_init, servo_up, servo_down
+typedef enum
+{
+    servo_init,
+    servo_up,
+    servo_down
 } servo_state_type;
 
-servo_state_type servoState =   servo_init;
+servo_state_type servoState = servo_init;
 
 /*------------ VARIABLES -------------- */
 
-Servo myservo;  // create servo object to control a servo
-int timer =0;
+Servo myservo; // create servo object to control a servo
+int timer = 0;
 
 /* ----------- FUNCTIONS -------------- */
 void initServo()
@@ -36,8 +42,10 @@ void stopServo()
 void setServoPosition(int value)
 {
 
-    if(value<0) value -=0;
-    if(value>180) value = 180;
+    if (value < 0)
+        value -= 0;
+    if (value > 180)
+        value = 180;
 
     myservo.write(value);
 }
@@ -57,18 +65,20 @@ void doClickButton(int timeLength)
 /* mandatory periodic function for servo functions */
 void cycleHandleServo()
 {
-    if(timer>0){
-        timer --;
-        if(timer == 0){
+    if (timer > 0)
+    {
+        timer--;
+        if (timer == 0)
+        {
             /* timer reached stop state, move servo to resting state */
             setServoPosition(0);
             //stopServo();
-
         }
     }
 
-    Serial.print("servo timer: ");
-    Serial.println(timer);
+    // Serial.print("servo timer: ");
+    // Serial.println(timer);
 }
 
 /* ---END OF FILE --- */
+#endif
