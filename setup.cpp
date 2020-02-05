@@ -7,7 +7,7 @@ IPAddress myIP;
 /* FUNCTIONS unit */
 void globalInit()
 {
-    
+
 	Serial.begin(115200);
 
 	/* check for Warm Reset and update timestamp with Reset Safe's content */
@@ -87,6 +87,5 @@ void globalInit()
 	//WiFi.softAPdisconnect(true);
 	//WiFi.enableAP(false);
 }
-
 
 /* ---END OF FILE --- */

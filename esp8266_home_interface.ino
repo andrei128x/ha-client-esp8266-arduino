@@ -108,7 +108,7 @@ void loop()
 
 	/* ---- mandatory section HANDLE of INCOMING DATA ------ */
 	cyclicHandleOTA();
-	// cyclicHandleWebRequests();
+	cyclicHandleWebRequests();
 	cyclicHandleRxUDP();
 
 	/* ---- customer section ---------- */

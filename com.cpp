@@ -27,9 +27,10 @@ byte mac[] = {0x00, 0x19, 0x99, 0xff, 0x69, 0x2b};
 #endif
 
 ESP8266WebServer server(HTTP_PORT);
-static char incomingPacket[2048];		 // buffer for incoming packets
+static char incomingPacket[2048]; // buffer for incoming packets
 
-String jsonData;
+char* jsonTemplate = "{ \"C\":%ld, \"ADC0\":%d , \"ADC1\":%d, \"avg0\":%.3f, \"avg1\":%.3f, \"read0\":%d, \"read1\":%d, \"RSSI\":%ld }";
+char jsonData[300];
 
 /* ----------- FUNCTIONS -------------- */
 
@@ -99,7 +100,7 @@ void serverHandleJsonRequest()
 	getSystemUptime(&response);
 
 	response += "\", \"reset\":\"";
-	u32AsciiToString(&response, u32ResetType);
+	response.concat(u32ResetType);
 	response += "\"}";
 
 	server.send(200, "application/json", response);
@@ -142,7 +143,6 @@ void initWebServer()
 void cyclicHandleWebRequests()
 {
 	server.handleClient();
-
 }
 
 void cyclicHandleRxUDP()
@@ -161,37 +161,39 @@ void cyclicHandleRxUDP()
 	}
 }
 
-
 void sendAdcSensorData()
 {
 	static char cycle = 0;
-	char data[255];
-
 	static unsigned int localUdpPort = 4210; // local port to listen on
-	
 
 	static unsigned int idx = 0;
 
 	if (cycle == 0)
 	{
-		jsonData = "{ \"ADC0\":$1, \"ADC1\":$2, \"avg0\":$3, \"avg1\":$4, \"read0\":$5, \"read1\":$6 }";
-		//jsonData = "{ \"ADC0\":1, \"ADC1\":2, \"avg0\":3, \"avg1\":4, \"read0\":5, \"read1\":6 }";
+		// jsonData = "{ \"ADC0\":$1, \"ADC1\":$2, \"avg0\":$3, \"avg1\":$4, \"read0\":$5, \"read1\":$6 }";
+		// //jsonData = "{ \"ADC0\":1, \"ADC1\":2, \"avg0\":3, \"avg1\":4, \"read0\":5, \"read1\":6 }";
 
-		jsonData.replace("$1", String(computedADC0, DEC));
-		jsonData.replace("$2", String(computedADC1, DEC));
-		jsonData.replace("$3", String((int)avg0, DEC));
-		jsonData.replace("$4", String((int)avg0, DEC));
-		jsonData.replace("$5", String(readVal0, DEC));
-		jsonData.replace("$6", String(readVal1, DEC));
+		// jsonData.replace("$1", String(computedADC0, DEC));
+		// jsonData.replace("$2", String(computedADC1, DEC));
+		// jsonData.replace("$3", String((int)avg0, DEC));
+		// jsonData.replace("$4", String((int)avg0, DEC));
+		// jsonData.replace("$5", String(readVal0, DEC));
+		// jsonData.replace("$6", String(readVal1, DEC));
 
 		// jsonData.toCharArray(data, jsonData.length() + 1);
 
 		// data[jsonData.length() + 1] = 0;
+
+		sprintf(jsonData, jsonTemplate, taskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, WiFi.RSSI());
+
 		int result;
 		if (WiFi.status() == WL_CONNECTED)
 		{
 			udpModule.beginPacket("192.168.100.17", UDP_PORT);
-			udpModule.write(jsonData.c_str(), jsonData.length());
+			// udpModule.write(jsonData.c_str(), jsonData.length());
+
+
+			udpModule.write(jsonData, strlen(jsonData));
 			result = udpModule.endPacket();
 		}
 
@@ -204,15 +206,15 @@ void sendAdcSensorData()
 		// Serial.print(" ");
 		// Serial.print(WiFi.status());
 		// Serial.print(" ");
-
-		if (WiFi.status() != WL_CONNECTED)
-		{
-			WiFi.begin(global_ssid, global_password);
-			Serial.println(".");
-		}
 	}
 
-	cycle = (cycle + 1) % 25; // print every Nth task
+	if (WiFi.status() != WL_CONNECTED)
+	{
+		WiFi.begin(global_ssid, global_password);
+		Serial.println(".");
+	}
+
+	cycle = (cycle + 1) % 125; // print every Nth task
 	idx++;
 }
 

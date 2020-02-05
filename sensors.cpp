@@ -27,7 +27,7 @@ float tempC = -150;
 char temperatureCString[6];
 //char temperatureFString[6];
 
-const int numvaluesFromADC = 89; // element count for the integrator filter of input values; prime number, to prevemnt 'moire' effect
+const int numvaluesFromADC = 71; // element count for the integrator filter of input values; prime number, to prevemnt 'moire' effect
 
 int valuesFromADC0[numvaluesFromADC]; // the valuesFromADC from the analog input
 int valuesFromADC1[numvaluesFromADC];
@@ -174,7 +174,7 @@ void updateCurrentSensorsADC()
 		Serial.println(" 430 520 ");
 	}
 
-	cnt = (cnt + 1) % 25;
+	cnt = (cnt + 1) % 125;
 };
 
 /* ---END OF FILE --- */
