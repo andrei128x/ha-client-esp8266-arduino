@@ -29,7 +29,7 @@ byte mac[] = {0x00, 0x19, 0x99, 0xff, 0x69, 0x2b};
 ESP8266WebServer server(HTTP_PORT);
 static char incomingPacket[2048]; // buffer for incoming packets
 
-char* jsonTemplate = "{ \"C\":%ld, \"ADC0\":%d , \"ADC1\":%d, \"avg0\":%.3f, \"avg1\":%.3f, \"read0\":%d, \"read1\":%d, \"RSSI\":%ld }";
+char jsonTemplate[] = "{ \"C\":%ld, \"ADC0\":%d , \"ADC1\":%d, \"avg0\":%.3f, \"avg1\":%.3f, \"read0\":%d, \"read1\":%d, \"RSSI\":%ld }";
 char jsonData[300];
 
 /* ----------- FUNCTIONS -------------- */
@@ -37,8 +37,18 @@ char jsonData[300];
 /* --- local functions --- */
 void initCOM()
 {
+	char startUpTemplate[] = "[%s] Reboot counter: %d";
+	char startUpMsg[64];
 	// set up UDP protocol
 	udpModule.begin(40000);
+
+	sprintf(startUpMsg, startUpTemplate, global_host, u32ResetCounter);
+
+	udpModule.beginPacket("192.168.100.17", UDP_PORT);
+	udpModule.write(startUpMsg, strlen(startUpMsg));
+	udpModule.endPacket();
+
+	u32ResetCounter++;
 }
 
 #if defined(DEV_WAKE_ON_LAN) && (DEV_WAKE_ON_LAN == true)
@@ -166,24 +176,10 @@ void sendAdcSensorData()
 	static char cycle = 0;
 	static unsigned int localUdpPort = 4210; // local port to listen on
 
-	static unsigned int idx = 0;
+	static unsigned int disconnectedFromWiFiCounter = 0;
 
 	if (cycle == 0)
 	{
-		// jsonData = "{ \"ADC0\":$1, \"ADC1\":$2, \"avg0\":$3, \"avg1\":$4, \"read0\":$5, \"read1\":$6 }";
-		// //jsonData = "{ \"ADC0\":1, \"ADC1\":2, \"avg0\":3, \"avg1\":4, \"read0\":5, \"read1\":6 }";
-
-		// jsonData.replace("$1", String(computedADC0, DEC));
-		// jsonData.replace("$2", String(computedADC1, DEC));
-		// jsonData.replace("$3", String((int)avg0, DEC));
-		// jsonData.replace("$4", String((int)avg0, DEC));
-		// jsonData.replace("$5", String(readVal0, DEC));
-		// jsonData.replace("$6", String(readVal1, DEC));
-
-		// jsonData.toCharArray(data, jsonData.length() + 1);
-
-		// data[jsonData.length() + 1] = 0;
-
 		sprintf(jsonData, jsonTemplate, taskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, WiFi.RSSI());
 
 		int result;
@@ -191,7 +187,6 @@ void sendAdcSensorData()
 		{
 			udpModule.beginPacket("192.168.100.17", UDP_PORT);
 			// udpModule.write(jsonData.c_str(), jsonData.length());
-
 
 			udpModule.write(jsonData, strlen(jsonData));
 			result = udpModule.endPacket();
@@ -210,12 +205,15 @@ void sendAdcSensorData()
 
 	if (WiFi.status() != WL_CONNECTED)
 	{
-		WiFi.begin(global_ssid, global_password);
-		Serial.println(".");
+		//WiFi.begin(global_ssid, global_password);
+		//Serial.println(".");
+
+		if (disconnectedFromWiFiCounter >= 8000) // 8 seconds
+			ESP.restart();
 	}
 
-	cycle = (cycle + 1) % 125; // print every Nth task
-	idx++;
+	cycle = (cycle + 1) % 66; // print every Nth task
+	disconnectedFromWiFiCounter++;
 }
 
 /* ---END OF FILE --- */

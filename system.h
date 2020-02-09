@@ -33,6 +33,7 @@ extern unsigned long u32ResetType; /* contains last reset's type */
 
 extern unsigned long u32WarmResetPattern __attribute__((section(".noinit"))); /* warm reset pattern, located in ResetSafe RAM */
 extern unsigned long long u32TotalUptimeMS __attribute__((section(".noinit")));		  /* uptime before warm reset, located in ResetSafe RAM */
+extern unsigned long u32ResetCounter __attribute__((section(".noinit")));
 
 /* ----------- VARIABLES sections ------------- */
 

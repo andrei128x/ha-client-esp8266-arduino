@@ -5,7 +5,7 @@
 #define DEV_SELF_ACCESS_POINT false
 
 /*------------ MACROS -------------- */
-#define TASK_CYCLIC_INTERVAL 2 // 1ms
+#define TASK_CYCLIC_INTERVAL 3 // milliseconds
 
 /*------------ VARIABLES -------------- */
 #if defined(DEV_SELF_ACCESS_POINT) && (DEV_SELF_ACCESS_POINT == true)

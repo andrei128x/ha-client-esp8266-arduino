@@ -8,7 +8,7 @@ IPAddress myIP;
 void globalInit()
 {
 
-	Serial.begin(115200);
+	Serial.begin(250000);
 
 	/* check for Warm Reset and update timestamp with Reset Safe's content */
 	checkWarmFlag();
