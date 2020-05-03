@@ -3,8 +3,8 @@
 #define _SENSORS_H
 
 #include <Arduino.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
+// #include <OneWire.h>
+// #include <DallasTemperature.h>
 
 /* ----------- DEFINES ------------- */
 
@@ -17,6 +17,9 @@ extern int readVal1;
 
 extern int computedADC0;
 extern int computedADC1;
+
+extern boolean stableADC0;
+extern boolean stableADC1;
 
 extern float avg0;
 extern float avg1;

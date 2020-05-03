@@ -5,7 +5,7 @@
 #define DEV_SELF_ACCESS_POINT false
 
 /*------------ MACROS -------------- */
-#define TASK_CYCLIC_INTERVAL 3 // milliseconds
+
 
 /*------------ VARIABLES -------------- */
 #if defined(DEV_SELF_ACCESS_POINT) && (DEV_SELF_ACCESS_POINT == true)
@@ -69,7 +69,7 @@ void vDoHadleTasks()
 
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 		/* update servo state machine */
-		cycleHandleServo();
+		//cycleHandleServo();
 #endif
 
 #if defined(ENABLE_MODULE_MOTOR) && (ENABLE_MODULE_MOTOR == true)

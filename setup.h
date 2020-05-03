@@ -1,6 +1,6 @@
 /* FUNCTIONS unit */
 #ifndef _SETUP_H
-	#define _SETUP_H
+#define _SETUP_H
 
 #include <Arduino.h>
 
@@ -19,8 +19,8 @@
 #include "motor.h"
 #include "gate_controlller.h"
 
-
 #define USE_ACTIVITY_LED true
+#define TASK_CYCLIC_INTERVAL 7 // milliseconds (again ... prime number)
 
 extern void globalInit();
 

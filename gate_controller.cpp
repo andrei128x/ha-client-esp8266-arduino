@@ -2,82 +2,95 @@
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 
 /* FUNCTIONS unit */
+#include "setup.h"
 #include "gate_controlller.h"
-#include <Servo.h>
+#include "sensors.h"
 
 /* ----------- DEFINES ------------- */
 
-#define ONBOARD_SERVO D2
+#define RELAY_PIN D4
 
-#define SERVO_CLICK_LENGTH 1200 // 1000ms for the servo's click operation
+#define MINIMUM_DIFFERENCE 50000
+#define SENSORS_HIGH_THRESHOLD 100000
 
-typedef enum
-{
-    servo_init,
-    servo_up,
-    servo_down
-} servo_state_type;
-
-servo_state_type servoState = servo_init;
+servo_state_type gateState = gate_init;
 
 /*------------ VARIABLES -------------- */
 
-Servo myservo; // create servo object to control a servo
-int timer = 0;
+int debounceTimer = 0;
 
 /* ----------- FUNCTIONS -------------- */
-void initServo()
+void initGateStates()
 {
-    myservo.attach(D2);
-    myservo.write(0);
-    servoState = servo_up;
+    gateState = gate_idle;
 }
 
-void stopServo()
+boolean isMovementDetected()
 {
-    myservo.detach();
-};
-
-/* immediately set servo position */
-void setServoPosition(int value)
-{
-
-    if (value < 0)
-        value -= 0;
-    if (value > 180)
-        value = 180;
-
-    myservo.write(value);
+    return ((computedADC0 > SENSORS_HIGH_THRESHOLD) || (computedADC1 > SENSORS_HIGH_THRESHOLD));
 }
 
 /* start the state machine to perform a "click" action, with a pre-defined time limit */
-void doClickButton(int timeLength)
+void doClickRelay(int timeLength)
 {
     /* move the servo to  */
-    //setServoPosition(55);
-    setServoPosition(50);
-    servoState = servo_down;
+    gateState = gate_init;
 
     /* start timeout timer */
-    timer = timeLength;
+    debounceTimer = timeLength;
 }
 
 /* mandatory periodic function for servo functions */
 void cycleHandleServo()
 {
-    if (timer > 0)
+    switch (gateState)
     {
-        timer--;
-        if (timer == 0)
+
+    case gate_idle:
+    case gate_opened:
+    case gate_closed:
+        if (isMovementDetected())
         {
-            /* timer reached stop state, move servo to resting state */
-            setServoPosition(0);
-            //stopServo();
+            gateState = gate_debounce;
+            // debounceTimer = DEBOUNCE_DELAY / TASK_CYCLIC_INTERVAL;
+        };
+        break;
+
+    case gate_debounce:
+
+        // if (debounceTimer == 0)
+        if (stableADC0 && stableADC1)
+        {
+            if (isMovementDetected())
+            {
+                if (computedADC0 * 0.8 > computedADC1)
+                    gateState = gate_opening;
+                else if (computedADC1 * 0.8 > computedADC0)
+                    gateState = gate_closing;
+            }
+            else
+            {
+                gateState = gate_idle;
+            }
         }
+        break;
+
+    case gate_opening:
+        if (!isMovementDetected())
+            gateState = gate_opened;
+        break;
+
+    case gate_closing:
+        if (!isMovementDetected())
+            gateState = gate_closed;
+        break;
+
+    default:
+        break;
     }
 
-    // Serial.print("servo timer: ");
-    // Serial.println(timer);
+    if (debounceTimer > 0)
+        debounceTimer--;
 }
 
 /* ---END OF FILE --- */

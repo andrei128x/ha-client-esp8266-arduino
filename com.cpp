@@ -29,7 +29,7 @@ byte mac[] = {0x00, 0x19, 0x99, 0xff, 0x69, 0x2b};
 ESP8266WebServer server(HTTP_PORT);
 static char incomingPacket[2048]; // buffer for incoming packets
 
-char jsonTemplate[] = "{ \"C\":%ld, \"ADC0\":%d , \"ADC1\":%d, \"avg0\":%.3f, \"avg1\":%.3f, \"read0\":%d, \"read1\":%d, \"RSSI\":%ld }";
+char jsonTemplate[] = "{ \"C\":%ld, \"ADC0\":%d , \"ADC1\":%d, \"avg0\":%.3f, \"avg1\":%.3f, \"read0\":%d, \"read1\":%d, \"stableSig\":%d, \"gateState\":%d, \"RSSI\":%ld }";
 char jsonData[300];
 
 /* ----------- FUNCTIONS -------------- */
@@ -120,7 +120,7 @@ void serverHandleJsonRequest()
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 void serverHandleServoClickRequest()
 {
-	doClickButton(15); // no. of cycles the button is kept pressed; 10ms or 100ms cycles
+	//doClickRelay(15); // no. of cycles the button is kept pressed; 10ms or 100ms cycles
 	server.send(200, "application/json", "{ \"response\":\"[OK]\" }");
 }
 #endif
@@ -180,7 +180,9 @@ void sendAdcSensorData()
 
 	if (cycle == 0)
 	{
-		sprintf(jsonData, jsonTemplate, taskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, WiFi.RSSI());
+
+		cycleHandleServo();
+		sprintf(jsonData, jsonTemplate, taskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, (int)(stableADC0 && stableADC1), (int)gateState, WiFi.RSSI());
 
 		int result;
 		if (WiFi.status() == WL_CONNECTED)
@@ -212,7 +214,7 @@ void sendAdcSensorData()
 			ESP.restart();
 	}
 
-	cycle = (cycle + 1) % 66; // print every Nth task
+	cycle = (cycle + 1) % 20; // print every Nth task
 	disconnectedFromWiFiCounter++;
 }
 

@@ -61,8 +61,7 @@ void globalInit()
 
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 	/* init servo for the gate controller */
-	initServo();
-	setServoPosition(0);
+	initGateStates();
 #endif
 
 	/* init the web server */

@@ -3,6 +3,7 @@
 
 /* FUNCTIONS unit */
 #include "sensors.h"
+#include "gate_controlller.h"
 #include "Arduino.h"
 
 #include <time.h>
@@ -14,34 +15,31 @@
 //#include <tmr.h>
 
 /* ----------- DEFINES ------------- */
-#define myPeriodic 15   //in sec | Thingspeak pub is 15sec
-#define ONE_WIRE_BUS D4 // DS18B20 on arduino pin2 corresponds to D4 on physical board
-
-#define ONBOARD_ADC A0
+// #define ONBOARD_ADC A0
 
 Adafruit_ADS1015 ads; /* Use this for the 12-bit version */
 float multiplier;
 
 #if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true) // OneWire ENABLED
+#define ONE_WIRE_BUS D4													// DS18B20 on arduino pin2 corresponds to D4 on physical board
 /*------------ VARIABLES -------------- */
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
 #endif
 
 float tempC = -150;
-
 char temperatureCString[6];
-//char temperatureFString[6];
 
-const int numvaluesFromADC = 71; // element count for the integrator filter of input values; prime number, to prevemnt 'moire' effect
+const int numvaluesFromADC = 53;			   // element count for the integrator filter of input values; prime number, to prevemnt 'moire' effect
+const int numValuesForStabilityDetection = 71; // element count for considering the analog signal is stable
 
 int valuesFromADC0[numvaluesFromADC]; // the valuesFromADC from the analog input
 int valuesFromADC1[numvaluesFromADC];
 int indexFilter0 = 0; // index for above tables of filter values
 int indexFilter1 = 0;
 
-int readVal0 = 449;
-int readVal1 = 449;
+int readVal0 = 0;
+int readVal1 = 0;
 
 float avg0 = readVal0;
 float avg1 = readVal1;
@@ -49,9 +47,13 @@ float avg1 = readVal1;
 int computedADC0 = 0;
 int computedADC1 = 0;
 
+boolean stableADC0 = false;
+boolean stableADC1 = false;
+
 /* ----------- FUNCTIONS -------------- */
 
 #if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true) // OneWire ENABLED
+
 void initTempSensor()
 {
 	DS18B20.begin();
@@ -81,6 +83,51 @@ void updateTemp()
 }
 #endif // OneWire temperature sensor
 
+int stabilityCondition(int value)
+{
+	return value / 10 + 5; // 3% stability condition
+}
+
+boolean checkStableADCs(int adc0, int adc1)
+{
+	static int stabilityCounter = 0;
+
+	static int lastValues0 = 0;
+	static int lastValues1 = 0;
+
+	boolean ret0 = true;
+	boolean ret1 = true;
+
+	if (abs(adc0 - lastValues0) >= stabilityCondition(adc0))
+		ret0 = false;
+
+	if (abs(adc1 - lastValues1) >= stabilityCondition(adc1))
+		ret1 = false;
+
+	lastValues0 = adc0;
+	lastValues1 = adc1;
+
+	if (ret0 && ret1)
+		if (stabilityCounter < numValuesForStabilityDetection)
+			stabilityCounter++;
+		else
+			;
+	else
+		stabilityCounter = 0;
+
+	if (stabilityCounter >= numValuesForStabilityDetection)
+	{
+
+		stableADC0 = true;
+		stableADC1 = true;
+	}
+	else
+	{
+		stableADC0 = false;
+		stableADC1 = false;
+	}
+}
+
 void initCurrentSensorsADC()
 {
 
@@ -91,8 +138,7 @@ void initCurrentSensorsADC()
 		valuesFromADC1[thisReading] = 0;
 	}
 
-
-	ads.begin();
+	ads.begin(D6, D5);
 	// Wire.setClock(1000000);
 	twi_setClock(1000000);
 
@@ -100,7 +146,7 @@ void initCurrentSensorsADC()
 
 	/* Use this to set data rate for the 12-bit version (optional)*/
 	ads.setSPS(ADS1015_DR_3300SPS); // for ADS1015 fastest samples per second is 3300 (default is 1600)
-
+	ads.setGain(GAIN_SIXTEEN);
 	ads.startContinuous_Differential_0_1();
 	ads.startContinuous_Differential_2_3();
 	/* Use this to set data rate for the 16-bit version (optional)*/
@@ -109,14 +155,11 @@ void initCurrentSensorsADC()
 
 void calcMediaValoriCitite(int newValue, int *existingValue, int *valuesFilterTable, int *index)
 {
-	// subtract the last reading:
-	*existingValue = *existingValue - valuesFilterTable[*index];
+	// subtract the last reading and the current one:
+	*existingValue = *existingValue - valuesFilterTable[*index] + newValue;
 
 	// read from the sensor:
 	valuesFilterTable[*index] = newValue;
-
-	// add the reading to the total:
-	*existingValue = *existingValue + valuesFilterTable[*index];
 
 	// advance to the next position in the array:
 	*index = *index + 1;
@@ -135,49 +178,51 @@ void updateCurrentSensorsADC()
 	int s16ADC0;
 	int s16ADC1;
 
-	if (inputADCtoReadFrom == 0)
+	//if (inputADCtoReadFrom == 0)
 	{
 		readVal0 = ads.readADC_Differential_0_1();
-		avg0 = (30.0 * avg0 + readVal0) / 31.0; // prime numbers
+		avg0 = (199.0 * avg0 + readVal0) / 200.0; // prime numbers
 		s16ADC0 = readVal0 - avg0;
 		calcMediaValoriCitite(s16ADC0 * s16ADC0, &computedADC0, valuesFromADC0, &indexFilter0);
-
 	}
-	else
+	// else
 	{
 		readVal1 = ads.readADC_Differential_2_3();
-		avg1 = (30.0 * avg1 + readVal1) / 31.0; // yeah, prime numbers... again
+		avg1 = (199.0 * avg1 + readVal1) / 200.0; // yeah, prime numbers... again
 		s16ADC1 = readVal1 - avg1;
 		calcMediaValoriCitite(s16ADC1 * s16ADC1, &computedADC1, valuesFromADC1, &indexFilter1);
-
 	}
 
 	inputADCtoReadFrom = 1 - inputADCtoReadFrom;
 
-	// sum-filter of values from the input
+	checkStableADCs(computedADC0, computedADC1);
 
 	static int cnt = 0;
 	if (cnt == 0)
 	{
 		Serial.print("ADC value: ");
-		Serial.print(450 + computedADC0 / (float)numvaluesFromADC);
+		Serial.print(computedADC0 / (float)numvaluesFromADC);
 		Serial.print(" ");
-		Serial.print(450 + computedADC1 / (float)numvaluesFromADC);
+		Serial.print(computedADC1 / (float)numvaluesFromADC);
 		Serial.print(" ");
-		Serial.print(readVal0);
+		Serial.print((stableADC0 && stableADC1) * 5000);
 		Serial.print(" ");
-		Serial.print(readVal1);
+		Serial.print((float)readVal0 * multiplier);
+		Serial.print(" ");
+		Serial.print((float)readVal1 * multiplier);
+		Serial.print(" ");
+		Serial.print(gateState * 1000);
 
-		Serial.print("Differential 0-1: ");
-		Serial.print(readVal0 * multiplier);
-		
-		Serial.print("Differential 2-3: ");
-		Serial.print(readVal1 * multiplier);
+		// Serial.print(" ");
+		// Serial.print(readVal0 * multiplier);
 
-		Serial.println(" 430 520 ");
+		// Serial.print(" ");
+		// Serial.print(readVal1 * multiplier);
+
+		Serial.println(" -50 50 ");
 	}
 
-	cnt = (cnt + 1) % 25;
+	cnt = (cnt + 1) % 5;
 };
 
 /* ---END OF FILE --- */
