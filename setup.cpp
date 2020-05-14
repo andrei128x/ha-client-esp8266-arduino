@@ -12,21 +12,40 @@ void globalInit()
 
 	/* check for Warm Reset and update timestamp with Reset Safe's content */
 	checkWarmFlag();
+	delay(1000);
 
 	/* switch on led */
 	pinMode(ONBOARD_LED, OUTPUT);
 	digitalWrite(ONBOARD_LED, LOW);
 
 	Serial.println("------------------------------------------------------");
+	Serial.print("Last reset reason: ");
+	Serial.println(ESP.getResetInfoPtr()->reason);
+	Serial.println("------------------------------------------------------");
 	Serial.println("Booting, waiting for WiFi connection...");
 	WiFi.mode(WIFI_STA);
 
-	WiFi.begin(global_ssid, global_password);
+	initStorageEEPROM();
+	// WiFi.begin(global_ssid, global_password);
+	// WiFi.begin(storedDataEEPROM.SSID, storedDataEEPROM.password);
 
-	while (WiFi.waitForConnectResult() != WL_CONNECTED)
+	Serial.print("Using SSID: ");
+	Serial.println(storedDataEEPROM.SSID);
+	Serial.print("Using Password: ");
+	Serial.println(storedDataEEPROM.password);
+
+	int8_t connectState = 0;
+	
+	WiFi.disconnect();
+	
+	for (unsigned char connectionCounter = 0; (connectionCounter < 5) && !connectState; connectionCounter++)
 	{
-		WiFi.begin(global_ssid, global_password);
-		Serial.println("Retrying connection...");
+		connectState = (WiFi.waitForConnectResult(3000) == WL_CONNECTED);
+		Serial.print("Connection state: ");
+		Serial.println(connectState);
+		WiFi.begin(storedDataEEPROM.SSID, storedDataEEPROM.password);
+		Serial.print("Retrying counter: ");
+		Serial.println(connectionCounter);
 	}
 
 	/* switch off led */
@@ -39,11 +58,21 @@ void globalInit()
 	Serial.println(myIP);
 
 #if defined(DEV_SELF_ACCESS_POINT) && (DEV_SELF_ACCESS_POINT == true)
-#error "section disabled"
-	WiFi.softAP(ssidAP, passwordAP);
-	IPAddress myIP = WiFi.softAPIP();
-	Serial.print("AP IP address: ");
-	Serial.println(myIP);
+	if (!connectState)
+	{
+		// WiFi.disconnect();
+		// #error "section disabled"
+		// initStorageEEPROM();
+		getDataFromEEPROM();
+
+		const char *ssidAP = globalSelfSSID;
+		const char *passwordAP = globalSelfPassword;
+
+		WiFi.softAP(ssidAP, passwordAP);
+		IPAddress myIP = WiFi.softAPIP();
+		Serial.print("AP IP address: ");
+		Serial.println(myIP);
+	}
 #endif
 
 	/* setup the OTA server */

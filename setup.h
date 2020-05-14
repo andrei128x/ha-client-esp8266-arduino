@@ -2,8 +2,6 @@
 #ifndef _SETUP_H
 #define _SETUP_H
 
-#include <Arduino.h>
-
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <ESP8266WebServer.h>
@@ -16,11 +14,14 @@
 #include "ota.h"
 #include "sensors.h"
 #include "com.h"
+#include "http_module.h"
 #include "motor.h"
 #include "gate_controlller.h"
+#include "storage.h"
 
 #define USE_ACTIVITY_LED true
 #define TASK_CYCLIC_INTERVAL 7 // milliseconds (again ... prime number)
+#define DEV_SELF_ACCESS_POINT true
 
 extern void globalInit();
 

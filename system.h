@@ -8,11 +8,13 @@
 /* ----------- SYSTEM MODULES ------------- */
 #define ENABLE_MODULE_OTA true
 #define ENABLE_MODULE_COM true
+#define ENABLE_MODULE_HTTP true
 #define ENABLE_MODULE_UDP_ADC_FORWARD true
 #define ENABLE_MODULE_ONE_WIRE false
 #define ENABLE_MODULE_GATE_CONTROLLER true
 #define ENABLE_MODULE_SENSORS true
 #define ENABLE_MODULE_MOTOR false
+#define ENABLE_MODULE_EEPROM true
 
 /* ----------- DEFINES ------------- */
 #define SYS_TASK_LEN (10) // 10ms interval

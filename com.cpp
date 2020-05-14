@@ -1,12 +1,12 @@
 #include "system.h"
 #if defined(ENABLE_MODULE_COM) && (ENABLE_MODULE_COM == true)
+#include "global.h"
 
 /* FUNCTIONS unit */
-#include "global.h"
-#include "system.h"
 #include "sensors.h"
 #include "com.h"
 #include "gate_controlller.h"
+#include "storage.h"
 
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
@@ -14,7 +14,6 @@
 /* ----------- DEFINES ------------- */
 #define DEV_WAKE_ON_LAN false
 
-#define HTTP_PORT 80
 #define UDP_PORT 2001
 
 /*------------ VARIABLES -------------- */
@@ -26,7 +25,6 @@ byte fill[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 byte mac[] = {0x00, 0x19, 0x99, 0xff, 0x69, 0x2b};
 #endif
 
-ESP8266WebServer server(HTTP_PORT);
 static char incomingPacket[2048]; // buffer for incoming packets
 
 char jsonTemplate[] = "{ \"C\":%ld, \"ADC0\":%d , \"ADC1\":%d, \"avg0\":%.3f, \"avg1\":%.3f, \"read0\":%d, \"read1\":%d, \"stableSig\":%d, \"gateState\":%d, \"RSSI\":%ld }";
@@ -37,14 +35,16 @@ char jsonData[300];
 /* --- local functions --- */
 void initCOM()
 {
-	char startUpTemplate[] = "[%s] Reboot counter: %d";
-	char startUpMsg[64];
+	char startUpTemplate[] = "[%s] Reboot counter: %d; using SSID/password: %s, %s";
+	char startUpMsg[256];
 	// set up UDP protocol
 	udpModule.begin(40000);
 
-	sprintf(startUpMsg, startUpTemplate, global_host, u32ResetCounter);
+	// getDataFromEEPROM(); already initialized
+	sprintf(startUpMsg, startUpTemplate, global_host, u32ResetCounter, storedDataEEPROM.SSID, storedDataEEPROM.password);
 
 	udpModule.beginPacket("192.168.100.17", UDP_PORT);
+
 	udpModule.write(startUpMsg, strlen(startUpMsg));
 	udpModule.endPacket();
 
@@ -64,100 +64,8 @@ void sendWakeOnLan()
 }
 #endif
 
-void serverHandleRootURI()
-{
-	String response;
-
-	response = "<!doctype html>\n\
-<html lang=\"en\">\n\
-<head>\n\
-	<meta charset=\"utf-8\">\n\
-	<title>Home IOT Project</title>\n\
-	<meta name=\"description\" content=\"Home IOT Project\">\n\
-	<meta name=\"author\" content=\"SitePoint\">\n\
-</head>\n\
-<body>\n\
-	<h3>\n";
-
-	response += "		<p>Temperature: ";
-	response += temperatureCString;
-	response += "&#176;C</p>\n";
-
-	response += "		<p>Uptime: ";
-	getSystemUptime(&response);
-	response += "</p>\n";
-
-	response += "		<p>Device IP: " + server.hostHeader() + "</p>\n";
-	//u32AsciiToString(&response, server.global_hostHeader());
-
-	response += "		<p>Last reset type: ";
-	u32AsciiToString(&response, u32ResetType);
-
-	response += "</p>\n		<p>Signal strength:" + String((int)WiFi.RSSI()) + "</p>\n	</h3>\n</body>\n</html>";
-
-	server.send(200, "text/html", response);
-	setActivityStateLED(ACTIVITY_START);
-}
-
-void serverHandleJsonRequest()
-{
-	String response;
-
-	response = "{\"temperature\":\"";
-	response += temperatureCString;
-	response += "\", \"uptime\":\"";
-
-	getSystemUptime(&response);
-
-	response += "\", \"reset\":\"";
-	response.concat(u32ResetType);
-	response += "\"}";
-
-	server.send(200, "application/json", response);
-	setActivityStateLED(ACTIVITY_START);
-}
-
-#if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
-void serverHandleServoClickRequest()
-{
-	//doClickRelay(15); // no. of cycles the button is kept pressed; 10ms or 100ms cycles
-	server.send(200, "application/json", "{ \"response\":\"[OK]\" }");
-}
-#endif
-
-void serverHandleSetForwardingIP()
-{
-}
-
-/* init function for http microservice */
-void initWebServer()
-{
-	/* information APIs */
-	server.on("/info", serverHandleRootURI);
-	server.on("/info.json", serverHandleJsonRequest);
-
-#if defined(ENABLE_MODULE_UDP_ADC_FORWARD) && (ENABLE_MODULE_UDP_ADC_FORWARD == true)
-	server.on("/set-forward-ip", serverHandleSetForwardingIP);
-#endif
-
-#if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
-	/* servo position APIs */
-	server.on("/servo/click", serverHandleServoClickRequest);
-#endif
-
-	server.begin();
-	Serial.println("HTTP server started");
-}
-
-/* mandatory cycle function for http service */
-void cyclicHandleWebRequests()
-{
-	server.handleClient();
-}
-
 void cyclicHandleRxUDP()
 {
-
 	int packetSize = udpModule.parsePacket();
 	if (packetSize)
 	{
@@ -171,7 +79,7 @@ void cyclicHandleRxUDP()
 	}
 }
 
-void sendAdcSensorData()
+void sendAdcSensorDataUDP()
 {
 	static char cycle = 0;
 	static unsigned int localUdpPort = 4210; // local port to listen on

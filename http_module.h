@@ -1,6 +1,6 @@
 /* FUNCTIONS unit */
-#ifndef _COM_H
-#define _COM_H
+#ifndef _HTTP_MODULE_H
+#define _HTTP_MODULE_H
 
 #include <Arduino.h>
 
@@ -11,11 +11,8 @@
 
 #include "global.h"
 
-extern void sendWakeOnLan();
-
-extern void initCOM();
-extern void cyclicHandleRxUDP();
-extern void sendAdcSensorDataUDP();
+extern void initWebServer();
+extern void cyclicHandleWebRequests();
 
 /* -- no code below this line */
 #endif

@@ -3,6 +3,7 @@
 
 /* FUNCTIONS unit */
 #include "sensors.h"
+#include "storage.h"
 #include "gate_controlller.h"
 #include "Arduino.h"
 
@@ -31,7 +32,7 @@ float tempC = -150;
 char temperatureCString[6];
 
 const int numvaluesFromADC = 53;			   // element count for the integrator filter of input values; prime number, to prevemnt 'moire' effect
-const int numValuesForStabilityDetection = 71; // element count for considering the analog signal is stable
+const int numValuesForStabilityDetection = 71; // element count for considering the analog signal is stable; prime number, hehe
 
 int valuesFromADC0[numvaluesFromADC]; // the valuesFromADC from the analog input
 int valuesFromADC1[numvaluesFromADC];
@@ -85,7 +86,7 @@ void updateTemp()
 
 int stabilityCondition(int value)
 {
-	return value / 10 + 5; // 3% stability condition
+	return value / 10 + 5; // ~3% stability condition, for current calibration values, approximately
 }
 
 boolean checkStableADCs(int adc0, int adc1)
@@ -200,6 +201,7 @@ void updateCurrentSensorsADC()
 	static int cnt = 0;
 	if (cnt == 0)
 	{
+
 		Serial.print("ADC value: ");
 		Serial.print(computedADC0 / (float)numvaluesFromADC);
 		Serial.print(" ");
@@ -219,7 +221,7 @@ void updateCurrentSensorsADC()
 		// Serial.print(" ");
 		// Serial.print(readVal1 * multiplier);
 
-		Serial.println(" -50 50 ");
+		Serial.println(" -50 50 "); // graphical scale
 	}
 
 	cnt = (cnt + 1) % 5;

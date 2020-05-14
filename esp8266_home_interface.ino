@@ -2,17 +2,11 @@
 
 
 /*------------ MACROS -------------- */
-#define DEV_SELF_ACCESS_POINT false
 
 /*------------ MACROS -------------- */
 
 
 /*------------ VARIABLES -------------- */
-#if defined(DEV_SELF_ACCESS_POINT) && (DEV_SELF_ACCESS_POINT == true)
-const char *ssidAP = "ESPap";
-const char *passwordAP = "thereisnospoon";
-#endif
-
 
 /* ------------ SETUP FUNCTION --------------- */
 void setup()
@@ -83,7 +77,7 @@ void vDoHadleTasks()
 		//getSeed();
 
 		updateCurrentSensorsADC();
-		sendAdcSensorData();
+		sendAdcSensorDataUDP();
 
 		/* calculate CPU load here */
 		u32CurrentTaskEndTime = millis();
@@ -102,7 +96,7 @@ void vDoHadleTasks()
 }
 
 
-/* ------------ MAIN FUNCTION -------------- */
+/* ------------ MAIN FUNCTION ( WARNING: only NON-blocking function calls allowed! ) -------------- */
 void loop()
 {
 
@@ -114,6 +108,5 @@ void loop()
 	/* ---- customer section ---------- */
 	vDoHadleTasks();
 }
-
 
 /* ----------------END APPLICATION -------------- */

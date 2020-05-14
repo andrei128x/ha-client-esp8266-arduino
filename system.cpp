@@ -1,4 +1,5 @@
 /* FUNCTIONS unit */
+#include "setup.h"
 #include "system.h"
 
 /* ----------- DEFINES ------------- */
@@ -17,7 +18,7 @@ unsigned long u32ResetCounter __attribute__((section(".noinit")));
 
 unsigned long u32ResetType = *((int *)"DLOC"); /* defaults to COLD reset, reversed due to endianness */
 
-extern long taskCnt = 0;
+long taskCnt = 0;
 /* ----------- FUNCTIONS -------------- */
 
 /* --- uptime calculation --- */
@@ -100,7 +101,7 @@ void handleActivityLED()
 void checkWarmFlag()
 {
 
-	Serial.println(u32WarmResetPattern);
+	Serial.println(u32WarmResetPattern, HEX);
 
 	/* WARM reset not found */
 	if (u32WarmResetPattern != *((int *)"MRAW"))
