@@ -1,5 +1,5 @@
-#include "setup.h"
-#include "system.h"
+#include "./setup.h"
+#include "../system/system.h"
 
 /*------------ VARIABLES -------------- */
 IPAddress myIP;
@@ -22,31 +22,57 @@ void globalInit()
 	Serial.print("Last reset reason: ");
 	Serial.println(ESP.getResetInfoPtr()->reason);
 	Serial.println("------------------------------------------------------");
-	Serial.println("Booting, waiting for WiFi connection...");
+
+	Serial.println("Boot complete, waiting for WiFi connection...");
+	// WiFi.disconnect();
 	WiFi.mode(WIFI_STA);
 
+	// FIXME FIX THE FUCKING WIFI issues
+
 	initStorageEEPROM();
-	// WiFi.begin(global_ssid, global_password);
+	WiFi.begin(global_ssid, global_password);
+	//FIXME fix storage shit !!
 	// WiFi.begin(storedDataEEPROM.SSID, storedDataEEPROM.password);
 
+	Serial.println("Connecting to WiFi...");
 	Serial.print("Using SSID: ");
-	Serial.println(storedDataEEPROM.SSID);
+	Serial.println(global_ssid);
+	// Serial.println(storedDataEEPROM.SSID);
+	// Serial.print(", length is ");
+	// Serial.println(strlen(storedDataEEPROM.SSID));
+
 	Serial.print("Using Password: ");
+	Serial.println(global_password);
 	Serial.println(storedDataEEPROM.password);
+	// Serial.print(", length is ");
+	// Serial.println(strlen(storedDataEEPROM.password));
+
+	boolean isIdentical = (strcmp(storedDataEEPROM.SSID, global_ssid) == 0) && (strcmp(storedDataEEPROM.password, global_password) == 0);
+	Serial.print("SSID and password comparison result: ");
+	Serial.println(isIdentical, DEC);
 
 	int8_t connectState = 0;
-	
-	WiFi.disconnect();
-	
-	for (unsigned char connectionCounter = 0; (connectionCounter < 5) && !connectState; connectionCounter++)
-	{
-		connectState = (WiFi.waitForConnectResult(3000) == WL_CONNECTED);
-		Serial.print("Connection state: ");
-		Serial.println(connectState);
-		WiFi.begin(storedDataEEPROM.SSID, storedDataEEPROM.password);
-		Serial.print("Retrying counter: ");
-		Serial.println(connectionCounter);
-	}
+
+	// for (unsigned char connectionCounter = 0; (connectionCounter < 12) && !connectState; connectionCounter++)
+	// {
+
+	// 	int8_t connectResult = WiFi.waitForConnectResult(5000);
+	// 	connectState = (connectResult == WL_CONNECTED);
+	// 	Serial.print("Connection state: ");
+	// 	Serial.println(connectResult);
+
+	// 	Serial.print("Retrying counter: ");
+	// 	Serial.println(connectionCounter);
+	// }
+
+	// TODO investigate this shit below !
+	//example from BAsic OTA 
+	// while (WiFi.waitForConnectResult() != WL_CONNECTED)
+	// {
+	// 	Serial.println("Connection Failed! Rebooting...");
+	// 	delay(5000);
+	// 	ESP.restart();
+	// }
 
 	/* switch off led */
 	digitalWrite(ONBOARD_LED, HIGH);
@@ -68,8 +94,8 @@ void globalInit()
 		const char *ssidAP = globalSelfSSID;
 		const char *passwordAP = globalSelfPassword;
 
-		WiFi.softAP(ssidAP, passwordAP);
-		IPAddress myIP = WiFi.softAPIP();
+		// WiFi.softAP(ssidAP, passwordAP);
+		// IPAddress myIP = WiFi.softAPIP();
 		Serial.print("AP IP address: ");
 		Serial.println(myIP);
 	}

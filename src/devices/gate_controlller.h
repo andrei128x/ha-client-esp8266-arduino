@@ -25,7 +25,7 @@ extern int debounceTimer;
 extern void initGateStates();
 
 extern void setServoPosition(int value);
-extern void doClickRelay(int timeLength);
+extern void doClickRelay(int timeLength  = 5);
 void cycleHandleServo();
 
 /* -- no code below this line */

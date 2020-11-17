@@ -9,7 +9,7 @@
 #include <ESP8266WebServer.h>
 #include <ArduinoOTA.h>
 
-#include "global.h"
+#include "../init/global.h"
 
 extern void initWebServer();
 extern void cyclicHandleWebRequests();

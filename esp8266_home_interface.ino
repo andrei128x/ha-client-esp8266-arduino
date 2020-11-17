@@ -1,4 +1,6 @@
-#include "setup.h"
+#include <Adafruit_ADS1015.h>
+
+#include "src/init/setup.h"
 
 
 /*------------ MACROS -------------- */
@@ -17,7 +19,7 @@ void setup()
 
 /* ------------ HELPER FUNCTIONS -------------- */
 // task processing function (pseudo-scheduler)
-void vDoHadleTasks()
+inline void vDoHadlePeriodicTasks()
 {
 	//static boolean pin_level = LOW;
 	static unsigned long u32LastExecutionTime = 0; // first task starts as soon as possible
@@ -106,7 +108,14 @@ void loop()
 	cyclicHandleRxUDP();
 
 	/* ---- customer section ---------- */
-	vDoHadleTasks();
+	vDoHadlePeriodicTasks();
+
+	// FIXME remove thios test code
+	// wl_status_t wifiState = WiFi.status();
+
+	// Serial.print("WIFI Status");
+	// Serial.println(wifiState);
+
 }
 
 /* ----------------END APPLICATION -------------- */

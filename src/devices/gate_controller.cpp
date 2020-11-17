@@ -1,14 +1,14 @@
-#include "system.h"
+#include "../system/system.h"
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 
 /* FUNCTIONS unit */
-#include "setup.h"
-#include "gate_controlller.h"
-#include "sensors.h"
+#include "../init/setup.h"
+#include "./gate_controlller.h"
+#include "./sensors.h"
 
 /* ----------- DEFINES ------------- */
 
-#define RELAY_PIN D4
+#define RELAY_PIN D1
 
 #define MINIMUM_DIFFERENCE 50000
 #define SENSORS_HIGH_THRESHOLD 100000
@@ -16,7 +16,6 @@
 servo_state_type gateState = gate_init;
 
 /*------------ VARIABLES -------------- */
-
 int debounceTimer = 0;
 
 /* ----------- FUNCTIONS -------------- */
@@ -30,11 +29,37 @@ boolean isMovementDetected()
     return ((computedADC0 > SENSORS_HIGH_THRESHOLD) || (computedADC1 > SENSORS_HIGH_THRESHOLD));
 }
 
+void updateStates(int timeLength)
+{
+    static int countDown = 0;
+
+    if (timeLength > 0)
+        countDown = timeLength;
+
+    if (countDown > 0)
+    {
+        countDown--;
+        Serial.println(countDown);
+
+        if (countDown == 0)
+        {
+            digitalWrite(RELAY_PIN, LOW); // OFF
+        }
+    }
+}
+
 /* start the state machine to perform a "click" action, with a pre-defined time limit */
 void doClickRelay(int timeLength)
 {
+    static unsigned char relayState = 0;
+
+    relayState = 1 - relayState;
+
     /* move the servo to  */
-    gateState = gate_init;
+    pinMode(RELAY_PIN, OUTPUT);
+    digitalWrite(RELAY_PIN, HIGH); // ON
+
+    updateStates(5);
 
     /* start timeout timer */
     debounceTimer = timeLength;
@@ -91,6 +116,8 @@ void cycleHandleServo()
 
     if (debounceTimer > 0)
         debounceTimer--;
+
+    updateStates(0);
 }
 
 /* ---END OF FILE --- */

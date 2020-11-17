@@ -8,16 +8,16 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#include "global.h"
-#include "system.h"
+#include "./global.h"
+#include "../system/system.h"
 
-#include "ota.h"
-#include "sensors.h"
-#include "com.h"
-#include "http_module.h"
-#include "motor.h"
-#include "gate_controlller.h"
-#include "storage.h"
+#include "../com/com.h"
+#include "../com/ota.h"
+#include "../com/http_module.h"
+#include "../system/storage.h"
+#include "../devices\sensors.h"
+#include "../devices\motor.h"
+#include "../devices\gate_controlller.h"
 
 #define USE_ACTIVITY_LED true
 #define TASK_CYCLIC_INTERVAL 7 // milliseconds (again ... prime number)

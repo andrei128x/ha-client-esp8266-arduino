@@ -1,12 +1,13 @@
-#include "system.h"
+#include "../system/system.h"
 #if defined(ENABLE_MODULE_HTTP) && (ENABLE_MODULE_HTTP == true)
-#include "global.h"
+#include "stdio.h"
+#include "../init/global.h"
 
 /* FUNCTIONS unit */
-#include "sensors.h"
-#include "http_module.h"
-#include "gate_controlller.h"
-#include "storage.h"
+#include "../system/storage.h"
+#include "./http_module.h"
+#include "../devices\sensors.h"
+#include "../devices\gate_controlller.h"
 
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
@@ -18,6 +19,8 @@
 ESP8266WebServer server(HTTP_PORT);
 
 /* ----------- FUNCTIONS -------------- */
+void __dummyFunc__(){}
+#define DUMMYFUNC __dummyFunc__
 
 /* mandatory cycle function for http service */
 void cyclicHandleWebRequests()
@@ -64,7 +67,8 @@ void serverHandleInfoRequestJson()
 {
     String response;
 
-    response = "{\"temperature\":\"";
+    response = "{\"build_date\": \"20201022\",";
+    response += "\"temperature\":\"";
     response += temperatureCString;
     response += "\", \"uptime\":\"";
 
@@ -97,7 +101,7 @@ void serverHandleSetWiFiCredentials()
     message += "\nArguments: ";
     message += server.args();
     message += "\n";
-    for (uint8_t i = 0; i < server.args(); i++)
+    for (unsigned char i = 0; i < server.args(); i++)
     {
         message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
     }
@@ -119,38 +123,54 @@ void serverHandleSetWiFiCredentials()
     strncpy(storedDataEEPROM.password, server.arg("pass").c_str(), 64);
 
     putDataToEEPROM();
-    SpiFlashOpResult SpiResult= spi_flash_erase_sector(0x7E);   // erash WiFi config's flash sector
+
+    ETS_UART_INTR_DISABLE();
+    SpiFlashOpResult SpiResult = spi_flash_erase_sector(0x7E); // erash WiFi config's flash sector
+    ETS_UART_INTR_ENABLE();
+
     Serial.print("Password configuration result: ");
     Serial.println(SpiResult);
 
     server.send(201, "text/html", message);
-    // ESP.restart();
 }
 
 void serverHandleReboot()
 {
-    //TODO implement
+    server.send(201, "text/html", "Rebooting...");
+
+    //TODO implement some form of Timeout for Reboot (restart after some X seconds in order to receive the HTTP confirmation)
     ESP.restart();
 }
 
 void serverHandleSetForwardingIP()
 {
-    //TODO implement
+    //TODO implement API for saving Forwarding UDP IP
 }
-
 
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 void serverHandleServoClickRequest()
 {
+    doClickRelay();
+
     //doClickRelay(15); // no. of cycles the button is kept pressed; 10ms or 100ms cycles
-    server.send(200, "application/json", "{ \"response\":\"[OK]\" }");
+    char responseTemplate[] = "{ \"response\":\"[%s]\" }";
+    char responseResult[32];
+
+    if (true)
+        snprintf(responseResult, 32, responseTemplate, "OFF");
+    else
+        snprintf(responseResult, 32, responseTemplate, "ON");
+
+    server.send(200, "application/json", responseResult);
 }
 #endif
-
 
 /* init function for http microservice */
 void initWebServer()
 {
+    /* logging API */
+    server.on("/toggle-debug", {});
+
     /* information APIs */
     server.on("/info", serverHandleInfoRequest);
     server.on("/info.json", serverHandleInfoRequestJson);

@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\**",
+                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
+                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\**",
+                "C:\\Users\\Andrei\\Documents\\Arduino\\libraries\\**",
+                "${workspaceFolder}\\**",
+                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.4\\**"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}\\**"
+                ]
+            },
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "intelliSenseMode": "gcc-x86",
+            "forcedInclude": []
+        }
+    ],
+    "version": 4
+}

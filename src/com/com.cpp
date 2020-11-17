@@ -1,12 +1,12 @@
-#include "system.h"
+#include "../system/system.h"
 #if defined(ENABLE_MODULE_COM) && (ENABLE_MODULE_COM == true)
-#include "global.h"
+#include "../init/global.h"
 
 /* FUNCTIONS unit */
-#include "sensors.h"
+#include "../devices/sensors.h"
 #include "com.h"
-#include "gate_controlller.h"
-#include "storage.h"
+#include "../devices\gate_controlller.h"
+#include "../system/storage.h"
 
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
@@ -43,7 +43,7 @@ void initCOM()
 	// getDataFromEEPROM(); already initialized
 	sprintf(startUpMsg, startUpTemplate, global_host, u32ResetCounter, storedDataEEPROM.SSID, storedDataEEPROM.password);
 
-	udpModule.beginPacket("192.168.100.17", UDP_PORT);
+	udpModule.beginPacket(LOCAL_CONTROLLER_ADDRESS, UDP_PORT);
 
 	udpModule.write(startUpMsg, strlen(startUpMsg));
 	udpModule.endPacket();
@@ -82,20 +82,20 @@ void cyclicHandleRxUDP()
 void sendAdcSensorDataUDP()
 {
 	static char cycle = 0;
-	static unsigned int localUdpPort = 4210; // local port to listen on
+	static unsigned int localUdpPort = 4210; // local port to listen on // TODO move port ID somewhere else
 
 	static unsigned int disconnectedFromWiFiCounter = 0;
 
 	if (cycle == 0)
 	{
 
-		cycleHandleServo();
+		cycleHandleServo();	// TODO cycleHandleServo() <- find out if this is the correct place to call this function
 		sprintf(jsonData, jsonTemplate, taskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, (int)(stableADC0 && stableADC1), (int)gateState, WiFi.RSSI());
 
 		int result;
 		if (WiFi.status() == WL_CONNECTED)
 		{
-			udpModule.beginPacket("192.168.100.17", UDP_PORT);
+			udpModule.beginPacket(LOCAL_CONTROLLER_ADDRESS, UDP_PORT);	// TODO save Forwarding UDP IP using the HTTP API dedicated for this
 			// udpModule.write(jsonData.c_str(), jsonData.length());
 
 			udpModule.write(jsonData, strlen(jsonData));
@@ -113,16 +113,7 @@ void sendAdcSensorDataUDP()
 		// Serial.print(" ");
 	}
 
-	if (WiFi.status() != WL_CONNECTED)
-	{
-		//WiFi.begin(global_ssid, global_password);
-		//Serial.println(".");
-
-		if (disconnectedFromWiFiCounter >= 8000) // 8 seconds
-			ESP.restart();
-	}
-
-	cycle = (cycle + 1) % 20; // print every Nth task
+	cycle = (cycle + 1) % 71; // print every Nth task ~ 1 second
 	disconnectedFromWiFiCounter++;
 }
 

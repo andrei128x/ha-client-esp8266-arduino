@@ -1,9 +1,9 @@
-#include "system.h"
+#include "./system.h"
 #if defined(ENABLE_MODULE_EEPROM) && (ENABLE_MODULE_EEPROM == true)
 
 /* ----------- INCLUDES ------------- */
 #include <EEPROM.h>
-#include "storage.h"
+#include "./storage.h"
 
 /* ----------- DEFINES ------------- */
 #define EEPROM_DATA_START_OFFSET 0x0 // use offset 0 for FLASH-emulated EEPROM read/write operations
