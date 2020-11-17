@@ -1,4 +1,17 @@
 {
     "C_Cpp.errorSquiggles": "Enabled",
-    "arduino.path": "C:/Program Files (x86)/Arduino"
+    "arduino.path": "C:/Program Files (x86)/Arduino",
+    "files.associations": {
+        "cstring": "cpp",
+        "typeinfo": "cpp",
+        "*.inc": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "initializer_list": "cpp",
+        "functional": "cpp"
+    }
 }

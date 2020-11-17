@@ -1,18 +1,14 @@
-#include "setup.h"
+#include <Adafruit_ADS1015.h>
+
+#include "src/init/setup.h"
 
 
 /*------------ MACROS -------------- */
-#define DEV_SELF_ACCESS_POINT false
 
 /*------------ MACROS -------------- */
-#define TASK_CYCLIC_INTERVAL 2 // 1ms
+
 
 /*------------ VARIABLES -------------- */
-#if defined(DEV_SELF_ACCESS_POINT) && (DEV_SELF_ACCESS_POINT == true)
-const char *ssidAP = "ESPap";
-const char *passwordAP = "thereisnospoon";
-#endif
-
 
 /* ------------ SETUP FUNCTION --------------- */
 void setup()
@@ -23,7 +19,7 @@ void setup()
 
 /* ------------ HELPER FUNCTIONS -------------- */
 // task processing function (pseudo-scheduler)
-void vDoHadleTasks()
+inline void vDoHadlePeriodicTasks()
 {
 	//static boolean pin_level = LOW;
 	static unsigned long u32LastExecutionTime = 0; // first task starts as soon as possible
@@ -69,7 +65,7 @@ void vDoHadleTasks()
 
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 		/* update servo state machine */
-		cycleHandleServo();
+		//cycleHandleServo();
 #endif
 
 #if defined(ENABLE_MODULE_MOTOR) && (ENABLE_MODULE_MOTOR == true)
@@ -83,7 +79,7 @@ void vDoHadleTasks()
 		//getSeed();
 
 		updateCurrentSensorsADC();
-		sendAdcSensorData();
+		sendAdcSensorDataUDP();
 
 		/* calculate CPU load here */
 		u32CurrentTaskEndTime = millis();
@@ -102,7 +98,7 @@ void vDoHadleTasks()
 }
 
 
-/* ------------ MAIN FUNCTION -------------- */
+/* ------------ MAIN FUNCTION ( WARNING: only NON-blocking function calls allowed! ) -------------- */
 void loop()
 {
 
@@ -112,8 +108,14 @@ void loop()
 	cyclicHandleRxUDP();
 
 	/* ---- customer section ---------- */
-	vDoHadleTasks();
-}
+	vDoHadlePeriodicTasks();
 
+	// FIXME remove thios test code
+	// wl_status_t wifiState = WiFi.status();
+
+	// Serial.print("WIFI Status");
+	// Serial.println(wifiState);
+
+}
 
 /* ----------------END APPLICATION -------------- */
