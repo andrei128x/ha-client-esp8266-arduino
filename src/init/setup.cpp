@@ -5,14 +5,11 @@
 IPAddress myIP;
 
 /* FUNCTIONS unit */
-void globalInit()
+void globalInitNoWiFi()
 {
-
-	Serial.begin(250000);
-
 	/* check for Warm Reset and update timestamp with Reset Safe's content */
 	checkWarmFlag();
-	delay(1000);
+	// delay(1000);
 
 	/* switch on led */
 	pinMode(ONBOARD_LED, OUTPUT);
@@ -27,7 +24,7 @@ void globalInit()
 	// WiFi.disconnect();
 	WiFi.mode(WIFI_STA);
 
-	// FIXME FIX THE FUCKING WIFI issues
+	// FIXME FIX THE FUCKING WIFI issues; update - add AP config mode/SM
 
 	initStorageEEPROM();
 	WiFi.begin(global_ssid, global_password);
@@ -43,36 +40,21 @@ void globalInit()
 
 	Serial.print("Using Password: ");
 	Serial.println(global_password);
-	Serial.println(storedDataEEPROM.password);
+}
+
+
+void globalInitWiFiAvailable()
+{
+	//FIXME - fix eeprom storage
+	// Serial.println(storedDataEEPROM.password);
 	// Serial.print(", length is ");
 	// Serial.println(strlen(storedDataEEPROM.password));
 
-	boolean isIdentical = (strcmp(storedDataEEPROM.SSID, global_ssid) == 0) && (strcmp(storedDataEEPROM.password, global_password) == 0);
-	Serial.print("SSID and password comparison result: ");
-	Serial.println(isIdentical, DEC);
+	// boolean isIdentical = (strcmp(storedDataEEPROM.SSID, global_ssid) == 0) && (strcmp(storedDataEEPROM.password, global_password) == 0);
+	// Serial.print("SSID and password comparison result: ");
+	// Serial.println(isIdentical, DEC);
 
-	int8_t connectState = 0;
-
-	// for (unsigned char connectionCounter = 0; (connectionCounter < 12) && !connectState; connectionCounter++)
-	// {
-
-	// 	int8_t connectResult = WiFi.waitForConnectResult(5000);
-	// 	connectState = (connectResult == WL_CONNECTED);
-	// 	Serial.print("Connection state: ");
-	// 	Serial.println(connectResult);
-
-	// 	Serial.print("Retrying counter: ");
-	// 	Serial.println(connectionCounter);
-	// }
-
-	// TODO investigate this shit below !
-	//example from BAsic OTA 
-	// while (WiFi.waitForConnectResult() != WL_CONNECTED)
-	// {
-	// 	Serial.println("Connection Failed! Rebooting...");
-	// 	delay(5000);
-	// 	ESP.restart();
-	// }
+	// int8_t connectState = 0;
 
 	/* switch off led */
 	digitalWrite(ONBOARD_LED, HIGH);
@@ -84,7 +66,7 @@ void globalInit()
 	Serial.println(myIP);
 
 #if defined(DEV_SELF_ACCESS_POINT) && (DEV_SELF_ACCESS_POINT == true)
-	if (!connectState)
+	// if (!connectState)
 	{
 		// WiFi.disconnect();
 		// #error "section disabled"

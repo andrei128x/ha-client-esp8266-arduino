@@ -6,8 +6,8 @@
 /* FUNCTIONS unit */
 #include "../system/storage.h"
 #include "./http_module.h"
-#include "../devices\sensors.h"
-#include "../devices\gate_controlller.h"
+#include "../devices/sensors.h"
+#include "../devices/gate_controlller.h"
 
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
@@ -157,9 +157,9 @@ void serverHandleServoClickRequest()
     char responseResult[32];
 
     if (true)
-        snprintf(responseResult, 32, responseTemplate, "OFF");
+        sprintf(responseResult, responseTemplate, "OFF");
     else
-        snprintf(responseResult, 32, responseTemplate, "ON");
+        sprintf(responseResult, responseTemplate, "ON");
 
     server.send(200, "application/json", responseResult);
 }

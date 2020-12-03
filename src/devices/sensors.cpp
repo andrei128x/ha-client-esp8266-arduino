@@ -22,7 +22,8 @@
 /* ----------- DEFINES ------------- */
 // #define ONBOARD_ADC A0
 
-Adafruit_ADS1015 ads; /* Use this for the 12-bit version */
+// Adafruit_ADS1015 ads; /* Use this for the 12-bit version */	//TODO: Find what kind of chip is connected !!
+Adafruit_ADS1115 ads; /* Use this for the 12-bit version */		//TODO: does it work ?!
 float multiplier;
 
 #if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true) // OneWire ENABLED
@@ -207,7 +208,7 @@ void updateCurrentSensorsADC()
 	static int cnt = 0;
 	if (cnt == 0)
 	{
-		Serial.print((String)"" + __FILE__ +":" + __LINE__ + ":" + __FUNCTION__ + ":");
+		// Serial.print((String)"" + __FILE__ +":" + __LINE__ + ":" + __FUNCTION__ + ":");
 		Serial.print("ADC value: ");
 		Serial.print(computedADC0 / (float)numvaluesFromADC);
 		Serial.print(" ");

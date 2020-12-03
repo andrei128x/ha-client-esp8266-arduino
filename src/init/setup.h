@@ -23,7 +23,8 @@
 #define TASK_CYCLIC_INTERVAL 7 // milliseconds (again ... prime number)
 #define DEV_SELF_ACCESS_POINT true
 
-extern void globalInit();
+extern void globalInitNoWiFi();
+extern void globalInitWiFiAvailable();
 
 /* -- no code below this line */
 #endif

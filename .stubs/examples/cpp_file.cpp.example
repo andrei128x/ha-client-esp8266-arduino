@@ -1,0 +1,18 @@
+/* FUNCTIONS unit */
+#include "../init/setup.h"
+#include "./header_file.h"
+
+/* ----------- DEFINES ------------- */
+#define SOME_LOCAL_DEFINE
+
+/*------------ VARIABLES -------------- */
+int some_variable_here = 42;
+
+/* ----------- FUNCTIONS -------------- */
+
+unsigned int some_function_here()
+{
+    return 42;
+}
+
+/* ---END OF FILE --- */

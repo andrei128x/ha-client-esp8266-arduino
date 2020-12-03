@@ -5,7 +5,7 @@
 #include "../init/global.h"
 #include "../system/system.h"
 #include "../devices/sensors.h"
-#include "../com/com.h"
+#include "../com/ota.h"
 #include "../devices/gate_controlller.h"
 
 #include <WiFiUdp.h>
@@ -36,7 +36,7 @@ void startOTA(const char *host)
 {
 	Serial.println("Starting OTA...");
 
-	ArduinoOTA.setHostname(host);
+	// ArduinoOTA.setHostname(host);	// FIXME check whether it makes sense to have a pre-defined name for the board, in the context of self advertising
 	//ArduinoOTA.setPassword((const char *)"1234");	// set password for OTA programming
 
 	ArduinoOTA.onStart(onStartOTA);
