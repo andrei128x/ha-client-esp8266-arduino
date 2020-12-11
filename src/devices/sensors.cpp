@@ -22,8 +22,8 @@
 /* ----------- DEFINES ------------- */
 // #define ONBOARD_ADC A0
 
-// Adafruit_ADS1015 ads; /* Use this for the 12-bit version */	//TODO: Find what kind of chip is connected !!
-Adafruit_ADS1115 ads; /* Use this for the 12-bit version */		//TODO: does it work ?!
+Adafruit_ADS1015 ads; /* Use this for the 12-bit version */ //TODO: Find what kind of chip is connected !!
+// Adafruit_ADS1115 ads; /* Use this for the 12-bit version */ //TODO: does it work ?!
 float multiplier;
 
 #if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true) // OneWire ENABLED
@@ -145,15 +145,19 @@ void initCurrentSensorsADC()
 	}
 
 	ads.begin(D6, D5);
+
+	// both of these two work, it seems
 	// Wire.setClock(1000000);
-	twi_setClock(1000000);
+	twi_setClock(1000000); // FIXME - this definitely works ...
+
+	twi_setClock(3400000); // FIXME - 3.4 MHz !!! it seems to work !!!
 
 	//multiplier = ads.voltsPerBit() * 1000.0F; /* Sets the millivolts per bit */
 
 	/* Use this to set data rate for the 12-bit version (optional)*/
-	ads.setSPS(ADS1015_DR_3300SPS); // for ADS1015 fastest samples per second is 3300 (default is 1600)
+	// ads.setSPS(ADS1015_DR_3300SPS); // for ADS1015 fastest samples per second is 3300 (default is 1600)
 	/* Use this to set data rate for the 16-bit version (optional)*/
-	// ads.setSPS(ADS1115_DR_860SPS);      // for ADS1115 fastest samples per second is 860 (default is 128)
+	ads.setSPS(ADS1115_DR_860SPS); // for ADS1115 fastest samples per second is 860 (default is 128)
 
 	ads.setGain(GAIN_SIXTEEN);
 	ads.startContinuous_Differential_0_1();
@@ -186,20 +190,33 @@ void updateCurrentSensorsADC()
 	int s16ADC0;
 	int s16ADC1;
 
-	//if (inputADCtoReadFrom == 0)
+	unsigned long start = micros();
+	unsigned long end;
+	int pin_val;
+
+	if (inputADCtoReadFrom == 0)
 	{
+		while (pin_val = digitalRead(D7))
+			delay(0);
+
 		readVal0 = ads.readADC_Differential_0_1();
 		avg0 = (199.0 * avg0 + readVal0) / 200.0; // prime numbers
 		s16ADC0 = readVal0 - avg0;
 		calcMediaValoriCitite(s16ADC0 * s16ADC0, &computedADC0, valuesFromADC0, &indexFilter0);
 	}
-	// else
+	else
 	{
+		while (pin_val = digitalRead(D7))
+			delay(0);
+
 		readVal1 = ads.readADC_Differential_2_3();
 		avg1 = (199.0 * avg1 + readVal1) / 200.0; // yeah, prime numbers... again
 		s16ADC1 = readVal1 - avg1;
 		calcMediaValoriCitite(s16ADC1 * s16ADC1, &computedADC1, valuesFromADC1, &indexFilter1);
 	}
+
+	end = micros();
+	int elapsed = (int)end - start;
 
 	inputADCtoReadFrom = 1 - inputADCtoReadFrom;
 
@@ -209,7 +226,7 @@ void updateCurrentSensorsADC()
 	if (cnt == 0)
 	{
 		// Serial.print((String)"" + __FILE__ +":" + __LINE__ + ":" + __FUNCTION__ + ":");
-		Serial.print("ADC value: ");
+		Serial.printf("ADC value: % d - %dus ", pin_val, elapsed);
 		Serial.print(computedADC0 / (float)numvaluesFromADC);
 		Serial.print(" ");
 		Serial.print(computedADC1 / (float)numvaluesFromADC);
@@ -232,8 +249,7 @@ void updateCurrentSensorsADC()
 
 		Serial.println(" -50 50 "); // graphical scale
 	}
-
-	cnt = (cnt + 1) % 5;
+	cnt = (cnt + 1) % 23;
 };
 
 /* ---END OF FILE --- */

@@ -18,7 +18,7 @@ unsigned long u32ResetCounter __attribute__((section(".noinit")));
 
 unsigned long u32ResetType = *((int *)"DLOC"); /* defaults to COLD reset, reversed due to endianness */
 
-long taskCnt = 0;
+unsigned long ulSysTaskCnt = 0;
 /* ----------- FUNCTIONS -------------- */
 
 /* --- uptime calculation --- */

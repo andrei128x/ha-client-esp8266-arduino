@@ -55,26 +55,8 @@ void vDoInitSM()
 // task processing function (pseudo-scheduler)
 inline void vDoHadlePeriodicTasksRunningWifi()
 {
-    //static boolean pin_level = LOW;
-    static unsigned long u32LastExecutionTime = 0; // first task starts as soon as possible
 
-    unsigned long u32CurrentTaskEntryTime = millis();
-    unsigned long delta = u32CurrentTaskEntryTime - u32LastExecutionTime;
-
-    unsigned long u32CurrentTaskEndTime;
-    unsigned char u8CpuLoad;
-
-    // static time_t dorel_last = 0;
-
-    // save time before reading
-    // SYS_START_MEASUREMENT();
-
-    // perform some activity every 10ms
-    if (delta >= TASK_CYCLIC_INTERVAL)
-    { //more than 10ms have passed
-        u32LastExecutionTime = u32CurrentTaskEntryTime;
-
-        /* EXPERIMENTAL CPU LOAD measuring
+    /* EXPERIMENTAL CPU LOAD measuring
 		time_t dorel_now = (time_t)(system_get_time());
 		Serial.print("Clock ticks passed: ");
 		Serial.print((dorel_now - dorel_last));
@@ -82,53 +64,43 @@ inline void vDoHadlePeriodicTasksRunningWifi()
 	*/
 
 #if defined(USE_ACTIVITY_LED) && (USE_ACTIVITY_LED == true)
-        handleActivityLED();
+    handleActivityLED();
 #endif
 
-        // send some LOG INFO over the (emulated) serial
+    // send some LOG INFO over the (emulated) serial
 
-        String timestamp = "";
-        getSystemUptime(&timestamp);
-        //Serial.println(timestamp);
+    String timestamp = "";
+    getSystemUptime(&timestamp);
+    //Serial.println(timestamp);
 
 #if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true)
-        updateTemp();
-        Serial.print("Temperature: ");
-        Serial.println(temperatureCString);
+    updateTemp();
+    Serial.print("Temperature: ");
+    Serial.println(temperatureCString);
 #endif
 
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
-        /* update servo state machine */
-        //cycleHandleServo();
+    /* update servo state machine */
+    //cycleHandleServo();
 #endif
 
 #if defined(ENABLE_MODULE_MOTOR) && (ENABLE_MODULE_MOTOR == true)
-        updateMotorSpeed(); //motor features NOT integrated
+    updateMotorSpeed(); //motor features NOT integrated
 #endif
-        //Serial.printf("%d ms\n",u32LastExecutionTime);
+    //Serial.printf("%d ms\n",u32LastExecutionTime);
 
-        //sendWakeOnLan();
+    //sendWakeOnLan();
 
-        //Serial.print("ADC value: ");
-        //getSeed();
+    //Serial.print("ADC value: ");
+    //getSeed();
 
-        updateCurrentSensorsADC();
+    updateCurrentSensorsADC();
+
+    static char cycle = 0;
+
+    if (cycle == 0)
         sendAdcSensorDataUDP();
-
-        /* calculate CPU load here */
-        u32CurrentTaskEndTime = millis();
-        u8CpuLoad = (u32CurrentTaskEndTime - u32CurrentTaskEntryTime) / TASK_CYCLIC_INTERVAL; //calculate
-
-        // Serial.print("CPU Load: ");
-        // Serial.println(u8CpuLoad);
-
-        //save time after reading
-        // SYS_STOP_MEASUREMENT();
-
-        //calculate time delta in microseconds
-        //SYS_DBG_PRINT_MEASUREMENT();
-        taskCnt++;
-    }
+    cycle = (cycle + 1) % 251; // print every Nth task ~ 1 second
 }
 
 void update_SM_STATE_NO_INIT()
@@ -225,6 +197,7 @@ void doExecute()
     /* check if entry function for current SM state has been executed */
     if (!local_SM.init)
     {
+        // execute init function only once
         local_SM.init = true;
 
         /* execute transition function */
@@ -238,9 +211,46 @@ void doExecute()
     }
     else
     {
-        /* execute periodic function for current state */
-        if (transition_table[local_SM.sm_id].update_state_func != NULL)
-            transition_table[local_SM.sm_id].update_state_func();
+        static unsigned long u32LastExecutionTime = 0; // first task starts as soon as possible
+
+        unsigned long u32CurrentTaskEntryTime = micros();
+        unsigned long delta = u32CurrentTaskEntryTime - u32LastExecutionTime;
+
+        unsigned long u32CurrentTaskEndTime;
+        float fCpuLoad;
+
+        // static time_t dorel_last = 0;
+
+        // save time before reading
+        // SYS_START_MEASUREMENT();
+
+        //more than TASK_CYCLIC_INTERVAL has passed since last execution
+        if (delta >= TASK_CYCLIC_INTERVAL * 1000)
+        {
+
+            /* execute periodic function for current state */
+            if (transition_table[local_SM.sm_id].update_state_func != NULL)
+                transition_table[local_SM.sm_id].update_state_func();
+
+            /* calculate CPU load here */
+            u32CurrentTaskEndTime = micros();
+
+            fCpuLoad = (u32CurrentTaskEndTime - u32CurrentTaskEntryTime) * 100 / (u32CurrentTaskEntryTime - u32LastExecutionTime);
+            u32LastExecutionTime = u32CurrentTaskEntryTime;
+
+            if (ulSysTaskCnt % 25 == 0)
+            {
+                // Serial.printf("CPU Load: %.2f \n", fCpuLoad);
+            }
+            // Serial.println(u8CpuLoad);
+
+            //save time after reading
+            // SYS_STOP_MEASUREMENT();
+
+            //calculate time delta in microseconds
+            //SYS_DBG_PRINT_MEASUREMENT();
+            ulSysTaskCnt++;
+        }
     }
 }
 

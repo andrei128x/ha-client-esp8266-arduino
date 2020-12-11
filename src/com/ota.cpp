@@ -14,22 +14,25 @@
 /* --- hooks for OTA functions --- */
 void onStartOTA()
 {
-	// switch off all the PWMs during upgrade
-	//	for (int i = 0; i < N_DIMMERS; i++)
-	//		analogWrite(dimmer_pin[i], 0);
-	//analogWrite(led_pin,0);
-
 	/* reset servo position */
+
 	SPIFFS.end();
+
+	//TODO investigate OTA procedure below, from Basic OTA example
+	// String type;
+    // if (ArduinoOTA.getCommand() == U_FLASH) {
+    //   type = "sketch";
+    // } else { // U_FS
+    //   type = "filesystem";
+    // }
+
+    // // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+    // Serial.println("Start updating " + type);
 }
 
 void onEndOTA()
 {
-	// do a fancy thing with our board led at end
-	// for (int i = 0; i < 30; i++) {
-	// 	//analogWrite(led_pin,(i*100) % 1001);
-	// 	delay(50);
-	// }
+
 }
 
 void startOTA(const char *host)

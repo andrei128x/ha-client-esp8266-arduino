@@ -41,7 +41,7 @@ int sendUdpMessage(char *msg, boolean broadcast = false)
 /* --- local functions --- */
 void initCOM()
 {
-	char startUpTemplate[] = "[%s] Reboot counter: %d; using SSID/password: %s, %s";
+	char startUpTemplate[] = "{\"reboot\": \"[%s] Reboot counter: %d; using SSID/password: %s, %s\"}";
 	char startUpMsg[256];
 
 	// set up UDP protocol
@@ -85,27 +85,20 @@ void cyclicHandleRxUDP()
 
 void sendAdcSensorDataUDP()
 {
-	static char cycle = 0;
-	
-	if (cycle == 0)
-	{
 
-		cycleHandleServo(); // TODO cycleHandleServo() <- find out if this is the correct place to call this function
-		sprintf(jsonData, jsonTemplate, taskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, (int)(stableADC0 && stableADC1), (int)gateState, WiFi.RSSI());
+	cycleHandleServo(); // TODO cycleHandleServo() <- find out if this is the correct place to call this function
+	sprintf(jsonData, jsonTemplate, ulSysTaskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, (int)(stableADC0 && stableADC1), (int)gateState, WiFi.RSSI());
 
-		// udpModule.beginPacket(LOCAL_UDP_CONTROLLER_ADDRESS, UDP_PORT); // FIXME add API to add forwarding IP or auto-discover method (preferred) for device
-		// udpModule.write(jsonData, strlen(jsonData));
-		// int result = udpModule.endPacket();
+	// udpModule.beginPacket(LOCAL_UDP_CONTROLLER_ADDRESS, UDP_PORT); // FIXME add API to add forwarding IP or auto-discover method (preferred) for device
+	// udpModule.write(jsonData, strlen(jsonData));
+	// int result = udpModule.endPacket();
 
-		int result = sendUdpMessage(jsonData);
+	int result = sendUdpMessage(jsonData);
 
-		if (result)
-			setActivityStateLED(ACTIVITY_START);
-		else
-			setActivityStateLED(ACTIVITY_STOPPED);
-	}
-
-	cycle = (cycle + 1) % 71; // print every Nth task ~ 1 second
+	if (result)
+		setActivityStateLED(ACTIVITY_START);
+	else
+		setActivityStateLED(ACTIVITY_STOPPED);
 }
 
 /* ---END OF FILE --- */

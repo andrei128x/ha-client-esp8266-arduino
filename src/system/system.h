@@ -49,7 +49,7 @@ extern void handleActivityLED();
 extern void checkWarmFlag();
 extern void u32AsciiToString(String *result, unsigned long value);
 
-extern long taskCnt;
+extern unsigned long ulSysTaskCnt;
 
 /* -- no code below this line */
 #endif
