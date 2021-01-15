@@ -57,7 +57,7 @@ void getSystemUptime(String *result)
 		seconds = "0" + seconds;
 
 	// https://en.wikipedia.org/wiki/ISO_8601#Time_intervals
-	*result += "P"+days + "DT" + hours + "H" + minutes + "M" + seconds + "S";
+	*result += "P" + days + "DT" + hours + "H" + minutes + "M" + seconds + "S";
 }
 
 /* set state for Activity LED behaviour */
@@ -101,7 +101,7 @@ void handleActivityLED()
 void checkWarmFlag()
 {
 
-	Serial.println(u32WarmResetPattern, HEX);
+	Serial.printf("Reset pattern found: %s\n", (char *)&u32WarmResetPattern);
 
 	/* WARM reset not found */
 	if (u32WarmResetPattern != *((int *)"MRAW"))

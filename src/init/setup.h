@@ -20,7 +20,15 @@
 #include "../devices\gate_controlller.h"
 
 #define USE_ACTIVITY_LED true
-#define TASK_CYCLIC_INTERVAL 1 // milliseconds (again ... prime number)
+
+#if defined(ENABLE_MODULE_SENSORS_ONE_WIRE) && (ENABLE_MODULE_SENSORS_ONE_WIRE == true)
+#define TASK_CYCLIC_INTERVAL 500 // milliseconds
+#endif
+
+#if defined(ENABLE_MODULE_SENSORS_ADS1x15) && (ENABLE_MODULE_SENSORS_ADS1x15 == true)
+#define TASK_CYCLIC_INTERVAL 2 // milliseconds (again ... prime number is desirable for the ADC; anti-aliasing)
+#endif
+
 #define DEV_SELF_ACCESS_POINT true
 
 extern void globalInitNoWiFi();

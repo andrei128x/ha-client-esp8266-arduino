@@ -13,7 +13,7 @@
 
 
 extern void cyclicHandleOTA();
-extern void startOTA(const char *host);
+extern void startOTA();
 
 /* -- no code below this line */
 #endif

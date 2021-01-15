@@ -32,7 +32,7 @@ extern int some_variable_here;
 // extern unsigned void some_function_here();
 extern void vDoInitSM();
 
-extern void update_SM_STATE_NO_INIT();
+extern void enter_SM_STATE_NO_INIT();
 extern void enter_SM_STATE_STARTUP_NO_WIFI();
 extern void update_SM_STATE_STARTUP_NO_WIFI();
 extern void enter_SM_STATE_STARTUP_WIFI();
@@ -40,7 +40,7 @@ extern void enter_SM_STATE_RUNNING_WIFI();
 extern void update_SM_STATE_RUNNING_WIFI();
 extern void update_SM_STATE_RUNNING_WIFI_DISCONNECTED();
 
-extern void doTransition(machine_states_type requested_state);
+extern void doRequestTransition(machine_states_type requested_state);
 extern boolean isNetworkAvailable();
 extern void doExecute();
 

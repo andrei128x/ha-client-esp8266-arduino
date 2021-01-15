@@ -9,9 +9,16 @@
 /* ----------- DEFINES ------------- */
 
 /* ----------- VARIABLES sections ------------- */
+
+/* ----------- FUNCTIONS section -------------- */
+#if defined(ENABLE_MODULE_SENSORS_ONE_WIRE) && (ENABLE_MODULE_SENSORS_ONE_WIRE == true) // OneWire ENABLED
 extern float tempC;
 extern char temperatureCString[];
+extern void initTempSensor();
+extern void updateTemp();
+#endif
 
+#if defined(ENABLE_MODULE_SENSORS_ADS1x15) && (ENABLE_MODULE_SENSORS_ADS1x15 == true)
 extern int readVal0;
 extern int readVal1;
 
@@ -24,14 +31,9 @@ extern boolean stableADC1;
 extern float avg0;
 extern float avg1;
 
-/* ----------- FUNCTIONS section -------------- */
-#if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE==true)	// OneWire ENABLED
-extern void initTempSensor();
-extern void updateTemp();
-#endif
-
 extern void initCurrentSensorsADC();
 extern void updateCurrentSensorsADC();
+#endif
 
 /* -- no code below this line */
 #endif

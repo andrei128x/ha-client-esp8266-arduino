@@ -35,7 +35,7 @@ void onEndOTA()
 
 }
 
-void startOTA(const char *host)
+void startOTA()
 {
 	Serial.println("Starting OTA...");
 

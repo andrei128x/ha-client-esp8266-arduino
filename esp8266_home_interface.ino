@@ -4,7 +4,7 @@
 /* ------------ SETUP FUNCTION --------------- */
 void setup()
 {
-	// doTransition(SM_STATE_STARTUP_NO_WIFI);
+	// doRequestTransition(SM_STATE_STARTUP_NO_WIFI);
 	vDoInitSM();
 }
 

@@ -61,13 +61,14 @@ void serverHandleInfoRequest()
 
     server.send(200, "text/html", response);
     setActivityStateLED(ACTIVITY_START);
+    // Serial.print("HTTP INFO requested \n ");
 }
 
 void serverHandleInfoRequestJson()
 {
     String response;
 
-    response = "{\"build_date\": \"20201022\",";
+    response = "{\"build_date\": \"" + String(__DATE__  __TIME__) + "\",";
     response += "\"temperature\":\"";
     response += temperatureCString;
     response += "\", \"uptime\":\"";
@@ -156,10 +157,7 @@ void serverHandleServoClickRequest()
     char responseTemplate[] = "{ \"response\":\"[%s]\" }";
     char responseResult[32];
 
-    if (true)
-        sprintf(responseResult, responseTemplate, "OFF");
-    else
-        sprintf(responseResult, responseTemplate, "ON");
+        sprintf(responseResult, responseTemplate, "OK");
 
     server.send(200, "application/json", responseResult);
 }

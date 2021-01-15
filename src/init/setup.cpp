@@ -42,7 +42,6 @@ void globalInitNoWiFi()
 	Serial.println(global_password);
 }
 
-
 void globalInitWiFiAvailable()
 {
 	//FIXME - fix eeprom storage
@@ -84,9 +83,9 @@ void globalInitWiFiAvailable()
 #endif
 
 	/* setup the OTA server */
-	startOTA(global_host);
+	startOTA();
 
-#if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true) // OneWire ENABLED
+#if defined(ENABLE_MODULE_SENSORS_ONE_WIRE) && (ENABLE_MODULE_SENSORS_ONE_WIRE == true) // OneWire ENABLED
 	/* start sensors */
 	initTempSensor();
 #endif
@@ -98,21 +97,23 @@ void globalInitWiFiAvailable()
 
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 	/* init servo for the gate controller */
-	initGateStates();
+	initGateStates(); // TODO - investigate moving WIFI-independant code to globalInitNoWiFi()
 #endif
 
 	/* init the web server */
 	initWebServer();
 
-	// UDP and other stuff
-	initCOM();
-
 	/* init the SECURE RANDOM module */
 	//void vInitADC();
 
-#if defined(ENABLE_MODULE_SENSORS) && (ENABLE_MODULE_SENSORS == true)
+#if defined(ENABLE_MODULE_SENSORS_ADS1x15) && (ENABLE_MODULE_SENSORS_ADS1x15 == true)
 	/* init the ADC sensors */
-	initCurrentSensorsADC();
+	initCurrentSensorsADC(); // TODO - #2 as above
+#endif
+
+#if defined(ENABLE_MODULE_COM) && (ENABLE_MODULE_COM == true)
+	// UDP and other stuff
+	initCOM();
 #endif
 
 	/* CONFIG FINISHED */

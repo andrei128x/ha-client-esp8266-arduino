@@ -28,7 +28,7 @@ byte mac[] = {0x00, 0x19, 0x99, 0xff, 0x69, 0x2b};
 static char incomingPacket[2048]; // buffer for incoming packets
 
 char jsonData[300];
-char jsonTemplate[] = "{ \"C\":%ld, \"ADC0\":%d , \"ADC1\":%d, \"avg0\":%.3f, \"avg1\":%.3f, \"read0\":%d, \"read1\":%d, \"stableSig\":%d, \"gateState\":%d, \"RSSI\":%ld }";
+const char JSON_TEMPLATE_DATA[] = "{ \"C\":%ld, \"ADC0\":%d , \"ADC1\":%d, \"avg0\":%.3f, \"avg1\":%.3f, \"read0\":%d, \"read1\":%d, \"stableSig\":%d, \"gateState\":%d, \"RSSI\":%ld }";
 
 /* ----------- FUNCTIONS -------------- */
 int sendUdpMessage(char *msg, boolean broadcast = false)
@@ -41,14 +41,16 @@ int sendUdpMessage(char *msg, boolean broadcast = false)
 /* --- local functions --- */
 void initCOM()
 {
-	char startUpTemplate[] = "{\"reboot\": \"[%s] Reboot counter: %d; using SSID/password: %s, %s\"}";
+	const char JSON_TEMPLATE_STARTUP[] = "{ \"deviceID\":	\"%X\", \"resetCounter\": %d }";
 	char startUpMsg[256];
 
 	// set up UDP protocol
 	udpModule.begin(LOCAL_UDP_PORT);
 
 	// getDataFromEEPROM(); already initialized
-	sprintf(startUpMsg, startUpTemplate, global_host, u32ResetCounter, storedDataEEPROM.SSID, storedDataEEPROM.password);
+	// sprintf(startUpMsg, JSON_TEMPLATE_STARTUP, ESP.getChipId(), u32ResetCounter, storedDataEEPROM.SSID, storedDataEEPROM.password);
+
+	sprintf(startUpMsg, JSON_TEMPLATE_STARTUP, ESP.getChipId(), u32ResetCounter);
 
 	sendUdpMessage(startUpMsg);
 
@@ -85,9 +87,7 @@ void cyclicHandleRxUDP()
 
 void sendAdcSensorDataUDP()
 {
-
-	cycleHandleServo(); // TODO cycleHandleServo() <- find out if this is the correct place to call this function
-	sprintf(jsonData, jsonTemplate, ulSysTaskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, (int)(stableADC0 && stableADC1), (int)gateState, WiFi.RSSI());
+	sprintf(jsonData, JSON_TEMPLATE_DATA, ulSysTaskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, (int)(stableADC0 && stableADC1), (int)gateState, WiFi.RSSI());
 
 	// udpModule.beginPacket(LOCAL_UDP_CONTROLLER_ADDRESS, UDP_PORT); // FIXME add API to add forwarding IP or auto-discover method (preferred) for device
 	// udpModule.write(jsonData, strlen(jsonData));
