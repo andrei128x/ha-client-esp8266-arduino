@@ -8,7 +8,7 @@
 #include "../com/ota.h"
 #include "../devices/gate_controlller.h"
 
-#include <WiFiUdp.h>
+// #include <WiFiUdp.h>
 
 /* ---------------------------------- OTA ----------------------------------*/
 /* --- hooks for OTA functions --- */
@@ -16,7 +16,7 @@ void onStartOTA()
 {
 	/* reset servo position */
 
-	SPIFFS.end();
+	// SPIFFS.end();	//disabled for ESP32
 
 	//TODO investigate OTA procedure below, from Basic OTA example
 	// String type;

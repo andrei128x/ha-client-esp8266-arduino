@@ -12,7 +12,10 @@
 #include "./gate_controlller.h"
 
 #include <time.h>
+
+#if defined(ESP8266_NODEMCU) or defined(ESP8266_WEMOS_D1MINI) or defined(ESP8266_WEMOS_D1MINIPRO)
 #include "user_interface.h"
+#endif
 
 #if defined(ENABLE_MODULE_SENSORS_ONE_WIRE) && (ENABLE_MODULE_SENSORS_ONE_WIRE == true)
 #include <Wire.h>
@@ -24,12 +27,13 @@
 #include <Adafruit_ADS1015.h>
 #endif
 
+char temperatureCString[6] = "N/A";
+
 #if defined(ENABLE_MODULE_SENSORS_ONE_WIRE) && (ENABLE_MODULE_SENSORS_ONE_WIRE == true) // OneWire ENABLED
 /* ----------- DEFINES ------------- */
 #define ONE_WIRE_BUS LED_BUILTIN // DS18B20 on arduino pin2 corresponds to D4 on physical board
 /*------------ VARIABLES -------------- */
 float tempC = -150;
-char temperatureCString[6];
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
@@ -107,17 +111,19 @@ void initCurrentSensorsADC()
 		valuesFromADC1[thisReading] = 0;
 	}
 
-	ads.begin(D6, D5);
+	//ads.begin(D6, D5); //FIXME not working for ESP32
 
 	// both of these two work, it seems
 	// Wire.setClock(1000000);
-	twi_setClock(1000000); // FIXME - 1MHz clock definitely works ...
+	// twi_setClock(1000000); // FIXME - 1MHz clock definitely works ...
 
-	twi_setClock(3400000); // FIXME - 3.4 MHz !!! it seems to work !!!
+	// twi_setClock(3400000); // FIXME - 3.4 MHz !!! it seems to work !!!	//FIXME not working for ESP32
 
 	/* Use this to set data rate for the 12-bit version (optional)*/
 	// ads.setSPS(ADS1015_DR_3300SPS); // for ADS1015 fastest samples per second is 3300 (default is 1600)
 	/* Use this to set data rate for the 16-bit version (optional)*/
+
+	/* //FIXME not working for ESP32
 	ads.setSPS(ADS1115_DR_860SPS); // for ADS1115 fastest samples per second is 860 (default is 128)
 
 	ads.setGain(GAIN_SIXTEEN);
@@ -125,8 +131,10 @@ void initCurrentSensorsADC()
 	ads.startContinuous_Differential_2_3();
 	fVoltsPerBitADC = ads.voltsPerBit() * 1000.0F; /* Sets the millivolts per bit */
 
+	/* FIXME not working for ESP32
 	pinMode(D7, INPUT);
 	digitalWrite(D7, HIGH);
+	*/
 };
 
 int stabilityCondition(int value)
@@ -204,6 +212,7 @@ void updateCurrentSensorsADC()
 	unsigned long end;
 	int pin_val;
 
+	/* FIXME not working for ESP32
 	if (inputADCtoReadFrom == 0)
 	{
 		static unsigned int timeoutCounter = 0;
@@ -241,12 +250,32 @@ void updateCurrentSensorsADC()
 		calcMediaValoriCitite(s16ADC1 * s16ADC1, &computedADC1, valuesFromADC1, &indexFilter1);
 	}
 
+	*/
+
+	readVal0 = analogRead(A5);
+
+	avg0 = (199.0 * avg0 + readVal0) / 200.0; // prime numbers
+	s16ADC0 = readVal0 - avg0;
+	calcMediaValoriCitite(s16ADC0 * s16ADC0, &computedADC0, valuesFromADC0, &indexFilter0);
+
+	readVal1 = analogRead(A7);
+
+
+
+
+	avg1 = (199.0 * avg1 + readVal1) / 200.0; // yeah, prime numbers... again
+	s16ADC1 = readVal1 - avg1;
+	calcMediaValoriCitite(s16ADC1 * s16ADC1, &computedADC1, valuesFromADC1, &indexFilter1);
+
 	end = micros();
 	int elapsed = (int)end - time_start;
 
 	inputADCtoReadFrom = 1 - inputADCtoReadFrom;
 
 	checkStabilityConditionForADCs(computedADC0, computedADC1);
+
+
+
 
 	static int cnt = 0;
 	if (cnt == 0)

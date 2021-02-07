@@ -9,14 +9,14 @@
 #include "../devices/sensors.h"
 #include "../devices/gate_controlller.h"
 
-#include <WiFiUdp.h>
-#include <ESP8266WiFi.h>
+// #include <WiFiUdp.h>
+// #include <ESP8266WiFi.h>
 
 /* ----------- DEFINES ------------- */
 #define HTTP_PORT 80
 
 /*------------ VARIABLES -------------- */
-ESP8266WebServer server(HTTP_PORT);
+WebServer server(HTTP_PORT);
 
 /* ----------- FUNCTIONS -------------- */
 void __dummyFunc__(){}
@@ -125,12 +125,14 @@ void serverHandleSetWiFiCredentials()
 
     putDataToEEPROM();
 
+/* FIXME disabled for ESP32
     ETS_UART_INTR_DISABLE();
     SpiFlashOpResult SpiResult = spi_flash_erase_sector(0x7E); // erash WiFi config's flash sector
     ETS_UART_INTR_ENABLE();
+    */
 
     Serial.print("Password configuration result: ");
-    Serial.println(SpiResult);
+    // Serial.println(SpiResult);   //FIXME disabled for ESP32
 
     server.send(201, "text/html", message);
 }

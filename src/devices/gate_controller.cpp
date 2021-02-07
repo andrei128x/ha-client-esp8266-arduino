@@ -8,7 +8,8 @@
 
 /* ----------- DEFINES ------------- */
 
-#define RELAY_PIN D1
+// #define RELAY_PIN D1 //FIXME not working for ESP32
+#define RELAY_PIN 22
 
 #define MINIMUM_DIFFERENCE 50000
 #define SENSORS_HIGH_THRESHOLD 100000

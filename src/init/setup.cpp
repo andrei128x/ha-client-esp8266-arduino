@@ -1,8 +1,43 @@
 #include "./setup.h"
 #include "../system/system.h"
+#include <rom/rtc.h>	//FIXME ESP32 ONLY !!!
+
+IPAddress address;
+
 
 /*------------ VARIABLES -------------- */
 IPAddress myIP;
+
+/**
+ * @brief helper function for reset reason
+ * //FIXME move it from here !!!
+ * 
+ */
+
+//FIXME ESP32 ONLY !
+void verbose_print_reset_reason(RESET_REASON reason)
+{
+  switch ( reason)
+  {
+    case 1  : Serial.println ("Vbat power on reset");break;
+    case 3  : Serial.println ("Software reset digital core");break;
+    case 4  : Serial.println ("Legacy watch dog reset digital core");break;
+    case 5  : Serial.println ("Deep Sleep reset digital core");break;
+    case 6  : Serial.println ("Reset by SLC module, reset digital core");break;
+    case 7  : Serial.println ("Timer Group0 Watch dog reset digital core");break;
+    case 8  : Serial.println ("Timer Group1 Watch dog reset digital core");break;
+    case 9  : Serial.println ("RTC Watch dog Reset digital core");break;
+    case 10 : Serial.println ("Instrusion tested to reset CPU");break;
+    case 11 : Serial.println ("Time Group reset CPU");break;
+    case 12 : Serial.println ("Software reset CPU");break;
+    case 13 : Serial.println ("RTC Watch dog Reset CPU");break;
+    case 14 : Serial.println ("for APP CPU, reseted by PRO CPU");break;
+    case 15 : Serial.println ("Reset when the vdd voltage is not stable");break;
+    case 16 : Serial.println ("RTC Watch dog reset digital core and rtc module");break;
+    default : Serial.println ("NO_MEAN");
+  }
+}
+
 
 /* FUNCTIONS unit */
 void globalInitNoWiFi()
@@ -17,11 +52,17 @@ void globalInitNoWiFi()
 
 	Serial.println("------------------------------------------------------");
 	Serial.print("Last reset reason: ");
+	
+	/* TODO generic, not working for ESP32
 	Serial.println(ESP.getResetInfoPtr()->reason);
+	*/
+	verbose_print_reset_reason(rtc_get_reset_reason(0));
+	verbose_print_reset_reason(rtc_get_reset_reason(1));
+
 	Serial.println("------------------------------------------------------");
 
 	Serial.println("Boot complete, waiting for WiFi connection...");
-	// WiFi.disconnect();
+	WiFi.disconnect();
 	WiFi.mode(WIFI_STA);
 
 	// FIXME FIX THE FUCKING WIFI issues; update - add AP config mode/SM
@@ -44,6 +85,7 @@ void globalInitNoWiFi()
 
 void globalInitWiFiAvailable()
 {
+
 	//FIXME - fix eeprom storage
 	// Serial.println(storedDataEEPROM.password);
 	// Serial.print(", length is ");
@@ -123,6 +165,10 @@ void globalInitWiFiAvailable()
 	/* reset soft AP */
 	//WiFi.softAPdisconnect(true);
 	//WiFi.enableAP(false);
+
+
+	WiFi.hostByName("webdev", address);
+	Serial.printf("Server %s is at %s", LOCAL_UDP_CONTROLLER_ADDRESS, address.toString());
 }
 
 /* ---END OF FILE --- */

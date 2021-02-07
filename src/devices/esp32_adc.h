@@ -2,6 +2,10 @@
 #ifndef _ESP32_ADC_H
 #define _ESP32_ADC_H
 
+#ifdef __cplusplus
+// extern "C" {
+#endif
+
 #include <Arduino.h>
 #include "pins_arduino.h"
 #include "../init/global.h"

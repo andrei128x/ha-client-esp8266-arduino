@@ -11,9 +11,10 @@
 /* ----------- VARIABLES sections ------------- */
 
 /* ----------- FUNCTIONS section -------------- */
+extern char temperatureCString[];
+
 #if defined(ENABLE_MODULE_SENSORS_ONE_WIRE) && (ENABLE_MODULE_SENSORS_ONE_WIRE == true) // OneWire ENABLED
 extern float tempC;
-extern char temperatureCString[];
 extern void initTempSensor();
 extern void updateTemp();
 #endif

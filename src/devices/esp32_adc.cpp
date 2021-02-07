@@ -1,6 +1,6 @@
 /* FUNCTIONS unit */
 #include "../init/setup.h"
-#include "./header_file.h"
+// #include "./header_file.h"
 
 /* ----------- DEFINES ------------- */
 #define SOME_LOCAL_DEFINE
@@ -30,6 +30,6 @@ class ESP32_ADC
     {
         
     }
-}
+};
 
 /* ---END OF FILE --- */

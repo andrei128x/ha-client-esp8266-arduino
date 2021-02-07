@@ -97,7 +97,7 @@ inline void vDoHadlePeriodicTasksRunningWifi()
  */
 void vDoInitSM()
 {
-    Serial.begin(250000); // DO NOT MOVE THIS to "enter_SM_STATE_NO_INIT", debug info at this point (startup) will be lost !
+    Serial.begin(115200); // DO NOT MOVE THIS to "enter_SM_STATE_NO_INIT", debug info at this point (startup) will be lost !
     delay(100);
     Serial.println("------------------------------------------------------");
     // Serial.print((String) "[" + __FUNCTION__ + "]");

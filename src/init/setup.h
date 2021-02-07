@@ -2,9 +2,9 @@
 #ifndef _SETUP_H
 #define _SETUP_H
 
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
-#include <ESP8266WebServer.h>
+#include <WiFi.h>
+// #include <WiFiUdp.h>
+// #include <WebServer.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
@@ -26,7 +26,7 @@
 #endif
 
 #if defined(ENABLE_MODULE_SENSORS_ADS1x15) && (ENABLE_MODULE_SENSORS_ADS1x15 == true)
-#define TASK_CYCLIC_INTERVAL 2 // milliseconds (again ... prime number is desirable for the ADC; anti-aliasing)
+#define TASK_CYCLIC_INTERVAL 1 // milliseconds (again ... prime number is desirable for the ADC; anti-aliasing)
 #endif
 
 #define DEV_SELF_ACCESS_POINT true

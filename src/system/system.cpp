@@ -16,7 +16,7 @@ unsigned long u32WarmResetPattern __attribute__((section(".noinit")));
 unsigned long long u32TotalUptimeMS __attribute__((section(".noinit")));
 unsigned long u32ResetCounter __attribute__((section(".noinit")));
 
-unsigned long u32ResetType = *((int *)"DLOC"); /* defaults to COLD reset, reversed due to endianness */
+unsigned long u32ResetType = *((int *)"COLD"); /* defaults to COLD reset, reversed due to endianness */
 
 unsigned long ulSysTaskCnt = 0;
 /* ----------- FUNCTIONS -------------- */
@@ -100,18 +100,17 @@ void handleActivityLED()
 
 void checkWarmFlag()
 {
-
-	Serial.printf("Reset pattern found: %s\n", (char *)&u32WarmResetPattern);
-
 	/* WARM reset not found */
-	if (u32WarmResetPattern != *((int *)"MRAW"))
+	if (u32WarmResetPattern != *((int *)"WARM"))
 	{
-		u32WarmResetPattern = *((int *)"MRAW"); /* update pattern in ResetSafe to WARM, reversed due to endianness */
+		Serial.printf("Reset pattern NOT found !");
+		u32WarmResetPattern = *((int *)"WARM"); /* update pattern in ResetSafe to WARM, reversed due to endianness */
 		u32TotalUptimeMS = 0;
 		u32ResetCounter = 0;
 	}
 	else
 	{ /* WARM reset found here */
+		Serial.printf("Reset pattern found: %x\n", (char *)&u32WarmResetPattern);
 		u32WarmResetTimeDelta = u32TotalUptimeMS;
 		u32ResetType = u32WarmResetPattern;
 	}
