@@ -20,24 +20,19 @@
                 "USBCON"
             ],
             "includePath": [
-                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266/tools/**",
-                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.7.4/**",
-                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.7.4/libraries/**",
-                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/**",
-                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266/**",
+                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp32/hardware/esp32/**",
+                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp32/**",
                 "C:/Users/Andrei/Documents/Arduino/libraries/**",
                 "C:/Program Files (x86)/Arduino/libraries/**",
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/**",
                 "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/**",
                 "${workspaceFolder}/**",
-                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.4\\**",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\**",
                 "C:\\Users\\Andrei\\Documents\\Arduino\\libraries\\**",
-                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**"
+                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\**",
+                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp32/tools/xtensa-esp32-elf-gcc/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/include"
             ],
             "forcedInclude": [
-                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266/tools/xtensa-lx106-elf-gcc/2.5.0-4-b40a506/lib/gcc/xtensa-lx106-elf/4.8.2/include/ssp/stdio.h",
-                "c:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266\tools/xtensa-lx106-elf-gcc/2.5.0-4-b40a506/xtensa-lx106-elf/include/string.h",
                 "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/string.h"
             ],
             "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.14.26428/bin/Hostx64/x64/cl.exe",
@@ -45,4 +40,4 @@
         }
     ],
     "version": 4
-}
+
