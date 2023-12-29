@@ -1,14 +1,10 @@
-#include <Adafruit_ADS1015.h>
-
-#include <Adafruit_ADS1015.h>
-
 #include "../system/system.h"
-#if defined(ENABLE_MODULE_SENSORS) && (ENABLE_MODULE_SENSORS == true)
+#if defined(ENABLE_MODULE_SENSORS_CURRENT) && (ENABLE_MODULE_SENSORS_CURRENT == true)
 
 /* FUNCTIONS unit */
 #include "Arduino.h"
 #include "../system/storage.h"
-#include "./sensors.h"
+#include "./sensors_current.h"
 #include "./gate_controlller.h"
 
 #include <time.h>
@@ -25,16 +21,6 @@
 Adafruit_ADS1015 ads; /* Use this for the 12-bit version */ //TODO: Find what kind of chip is connected !!
 // Adafruit_ADS1115 ads; /* Use this for the 12-bit version */ //TODO: does it work ?!
 float multiplier;
-
-#if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true) // OneWire ENABLED
-#define ONE_WIRE_BUS D4													// DS18B20 on arduino pin2 corresponds to D4 on physical board
-/*------------ VARIABLES -------------- */
-OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature DS18B20(&oneWire);
-#endif
-
-float tempC = -150;
-char temperatureCString[6];
 
 const int numvaluesFromADC = 53;			   // element count for the integrator filter of input values; prime number, to prevemnt 'moire' effect
 const int numValuesForStabilityDetection = 71; // element count for considering the analog signal is stable; prime number, hehe
@@ -57,38 +43,6 @@ boolean stableADC0 = false;
 boolean stableADC1 = false;
 
 /* ----------- FUNCTIONS -------------- */
-
-#if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true) // OneWire ENABLED
-
-void initTempSensor()
-{
-	DS18B20.begin();
-	DS18B20.setWaitForConversion(false);
-	DS18B20.requestTemperatures();
-}
-
-void updateTemp()
-{
-	//DS18B20.requestTemperatures();
-	//return DS18B20.getTempCByIndex(0);
-
-	// preform the OneWire reading
-	if (DS18B20.isConversionComplete())
-	{
-		tempC = DS18B20.getTempCByIndex(0); // transfer takes ~27 milliseconds
-		DS18B20.requestTemperatures();		// reading takes ~600 milliseconds
-											//Serial.println("complete");
-	}
-	else
-	{
-		//		Serial.println("NOT complete");
-	}
-
-	// convert from float to char[]
-	dtostrf(tempC, 2, 2, temperatureCString);
-}
-#endif // OneWire temperature sensor
-
 int stabilityCondition(int value)
 {
 	return value / 10 + 5; // ~3% stability condition, for current calibration values, approximately

@@ -1,6 +1,6 @@
 {
     "C_Cpp.errorSquiggles": "Enabled",
-    "arduino.path": "C:/Program Files (x86)/Arduino",
+    "arduino.path": "",
     "files.associations": {
         "cstring": "cpp",
         "typeinfo": "cpp",

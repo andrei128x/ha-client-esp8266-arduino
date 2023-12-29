@@ -3,7 +3,14 @@
 #include "../init/global.h"
 
 /* FUNCTIONS unit */
-#include "../devices/sensors.h"
+#if defined(ENABLE_MODULE_SENSORS_CURRENT) && (ENABLE_MODULE_SENSORS_CURRENT == true)
+#include "../devices/sensors_current.h"
+#endif
+
+#if defined(ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP) && (ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP == true)
+#include "../devices/sensors_temp.h"
+#endif
+
 #include "com.h"
 #include "../devices\gate_controlller.h"
 #include "../system/storage.h"

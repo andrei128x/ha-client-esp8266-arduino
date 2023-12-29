@@ -4,7 +4,7 @@
 /* FUNCTIONS unit */
 #include "../init/setup.h"
 #include "./gate_controlller.h"
-#include "./sensors.h"
+#include "./sensors_current.h"
 
 /* ----------- DEFINES ------------- */
 

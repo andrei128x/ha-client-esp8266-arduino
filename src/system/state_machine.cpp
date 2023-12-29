@@ -73,7 +73,7 @@ inline void vDoHadlePeriodicTasksRunningWifi()
     getSystemUptime(&timestamp);
     //Serial.println(timestamp);
 
-#if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true)
+#if defined(ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP) && (ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP == true)
     updateTemp();
     Serial.print("Temperature: ");
     Serial.println(temperatureCString);
@@ -166,6 +166,7 @@ void update_SM_STATE_RUNNING_WIFI_DISCONNECTED()
 
 boolean isNetworkAvailable()
 {
+    return true;
     // return sm.state == SM_STATE_WIFI_CONNECTED;
 }
 

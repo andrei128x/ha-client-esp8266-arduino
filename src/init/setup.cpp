@@ -86,7 +86,7 @@ void globalInitWiFiAvailable()
 	/* setup the OTA server */
 	startOTA(global_host);
 
-#if defined(ENABLE_MODULE_ONE_WIRE) && (ENABLE_MODULE_ONE_WIRE == true) // OneWire ENABLED
+#if defined(ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP) && (ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP == true) // OneWire ENABLED
 	/* start sensors */
 	initTempSensor();
 #endif

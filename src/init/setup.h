@@ -15,7 +15,15 @@
 #include "../com/ota.h"
 #include "../com/http_module.h"
 #include "../system/storage.h"
-#include "../devices\sensors.h"
+
+#if defined(ENABLE_MODULE_SENSORS_CURRENT) && (ENABLE_MODULE_SENSORS_CURRENT == true)
+#include "../devices/sensors_current.h"
+#endif
+
+#if defined(ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP) && (ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP == true)
+#include "../devices/sensors_temp.h"
+#endif
+
 #include "../devices\motor.h"
 #include "../devices\gate_controlller.h"
 
