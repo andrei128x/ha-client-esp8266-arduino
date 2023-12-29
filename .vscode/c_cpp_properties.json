@@ -2,43 +2,6 @@
     "version": 4,
     "configurations": [
         {
-            "name": "Win32",
-            "compilerPath": "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\xtensa-lx106-elf-gcc\\3.1.0-gcc10.3-e5f9fec\\bin\\xtensa-lx106-elf-g++",
-            "compilerArgs": [],
-            "intelliSenseMode": "gcc-x64",
-            "includePath": [
-                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266/tools/**",
-                "C:/Users/Andrei/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/**",
-                "C:/Users/Andrei/Documents/Arduino/libraries/**",
-                "${workspaceFolder}/**",
-                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\**",
-                "C:\\Users\\Andrei\\Documents\\Arduino\\libraries\\**",
-                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**"
-            ],
-            "forcedInclude": [
-                "~/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/3.1.2/cores/esp8266/Arduino.h"
-            ],
-            "cStandard": "",
-            "cppStandard": "c++17",
-            "defines": [
-                "ARDUINO-100",
-                "__SSP_FORTIFY_LEVEL=1",
-                "LED_BUILTIN=2",
-                "D1=5",
-                "D2=4",
-                "D3=0",
-                "D4=2",
-                "D5=14",
-                "D6=12",
-                "D7=13",
-                "D8=15",
-                "ARDUINO_ARCH_ESP8266",
-                "ESP8266",
-                "__MS_types__",
-                "USBCON"
-            ]
-        },
-        {
             "name": "Arduino",
             "compilerPath": "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\xtensa-lx106-elf-gcc\\3.1.0-gcc10.3-e5f9fec\\bin\\xtensa-lx106-elf-g++",
             "compilerArgs": [
@@ -54,6 +17,8 @@
             ],
             "intelliSenseMode": "gcc-x64",
             "includePath": [
+                "${workspaceRoot}",
+                "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\libraries\\**",
                 "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.1.2\\tools\\sdk\\include",
                 "C:\\Users\\Andrei\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.1.2\\tools\\sdk\\lwip2\\include",
                 "C:\\Users\\Andrei\\AppData\\Local\\Temp\\arduino\\sketches\\A43592156C8E0E47781F48A5B7AF0F9F\\core",
