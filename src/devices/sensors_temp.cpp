@@ -24,7 +24,7 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors_DS18B20(&oneWire);
 
 float tempC = -150;
-char temperatureCString[128];
+char temperatureCString[128] = "[]";
 
 byte sensorsCount = 0; // should enumerate only DS18B20 (enumerate all, then filter only the temperature sensors), but... yeah
 
@@ -57,7 +57,7 @@ void initTempSensor()
 	sensors_DS18B20.requestTemperatures();
 }
 
-void updateTemp()
+void updateTemps()
 {
 	static byte idx = 0;
 	// sensors_DS18B20.requestTemperatures();
@@ -68,18 +68,29 @@ void updateTemp()
 	// {
 	tempC = sensors_DS18B20.getTempC(deviceList[idx]); // transfer takes ~27 milliseconds
 	char temp[8] = {0};
+	static char tempData[64] = "[ ";
+
 	dtostrf(tempC, 2, 2, temp);
 
-	strcat(temperatureCString, " ");
-	strcat(temperatureCString, temp);
+	if (idx > 0)
+		strcat(tempData, ", ");
+
+	strcat(tempData, temp);
 
 	idx++;
-	if (idx >= TOTAL_DEVICES)
+	if (idx >= sensorsCount)
 	{
 		idx = 0;
 		sensors_DS18B20.requestTemperatures(); // reading takes ~600 milliseconds
 
 		temperatureCString[0] = 0;
+
+		strcat(tempData, " ]");
+		strcat(temperatureCString, tempData);
+		
+		bzero(tempData, std::size(tempData));
+		tempData[0] = 0;
+		strcat(tempData, "[ ");
 	}
 	// Serial.println("complete");
 	// }

@@ -27,8 +27,8 @@
 #include "../devices\motor.h"
 #include "../devices\gate_controlller.h"
 
-#define USE_ACTIVITY_LED true
-#define TASK_CYCLIC_INTERVAL 1 // milliseconds (again ... prime number)
+#define USE_ACTIVITY_LED false
+#define TASK_CYCLIC_INTERVAL 100 // milliseconds (again ... prime number)
 #define DEV_SELF_ACCESS_POINT true
 
 extern void globalInitNoWiFi();

@@ -20,7 +20,7 @@
 
 Adafruit_ADS1015 ads; /* Use this for the 12-bit version */ //TODO: Find what kind of chip is connected !!
 // Adafruit_ADS1115 ads; /* Use this for the 12-bit version */ //TODO: does it work ?!
-float multiplier;
+float fVoltsPerBitADC;
 
 const int numvaluesFromADC = 53;			   // element count for the integrator filter of input values; prime number, to prevemnt 'moire' effect
 const int numValuesForStabilityDetection = 71; // element count for considering the analog signal is stable; prime number, hehe
@@ -43,12 +43,67 @@ boolean stableADC0 = false;
 boolean stableADC1 = false;
 
 /* ----------- FUNCTIONS -------------- */
-int stabilityCondition(int value)
+void initCurrentSensorsADC()
+{
+
+	// initialize all the valuesFromADC to 0:
+	for (int thisReading = 0; thisReading < numvaluesFromADC; thisReading++)
+	{
+		valuesFromADC0[thisReading] = 0;
+		valuesFromADC1[thisReading] = 0;
+	}
+
+	ads.begin(D6, D5);
+
+	// both of these two work, it seems
+	// Wire.setClock(1000000);
+	twi_setClock(1000000); // FIXME - this definitely works ...
+
+	twi_setClock(3400000); // FIXME - 3.4 MHz !!! it seems to work !!!
+
+	//fVoltsPerBitADC = ads.voltsPerBit() * 1000.0F; /* Sets the millivolts per bit */
+
+	/* Use this to set data rate for the 12-bit version (optional)*/
+	// ads.setSPS(ADS1015_DR_3300SPS); // for ADS1015 fastest samples per second is 3300 (default is 1600)
+	/* Use this to set data rate for the 16-bit version (optional)*/
+	ads.setSPS(ADS1115_DR_860SPS); // for ADS1115 fastest samples per second is 860 (default is 128)
+
+	ads.setGain(GAIN_SIXTEEN);
+	ads.startContinuous_Differential_0_1();
+	ads.startContinuous_Differential_2_3();
+	pinMode(D7, INPUT);
+	digitalWrite(D7, HIGH);
+};
+
+
+static int stabilityCondition(int value)
 {
 	return value / 10 + 5; // ~3% stability condition, for current calibration values, approximately
 }
 
-boolean checkStableADCs(int adc0, int adc1)
+
+/* circular buffer, where a new value is added at one end and an onld value is removed from the other end */
+void calcMediaValoriCitite(int newValue, int *existingValue, int *valuesFilterTable, int *index)
+{
+	// subtract the last reading and the current one:
+	*existingValue = *existingValue - valuesFilterTable[*index] + newValue;
+
+	// read from the sensor:
+	valuesFilterTable[*index] = newValue;
+
+	// advance to the next position in the array:
+	*index = *index + 1;
+
+	// if we're at the end of the array...
+	if (*index >= numvaluesFromADC)
+	{
+		// ...wrap around to the beginning:
+		*index = 0;
+	}
+}
+
+
+static void checkStabilityConditionForADCs(int adc0, int adc1)
 {
 	static int stabilityCounter = 0;
 
@@ -88,55 +143,6 @@ boolean checkStableADCs(int adc0, int adc1)
 	}
 }
 
-void initCurrentSensorsADC()
-{
-
-	// initialize all the valuesFromADC to 0:
-	for (int thisReading = 0; thisReading < numvaluesFromADC; thisReading++)
-	{
-		valuesFromADC0[thisReading] = 0;
-		valuesFromADC1[thisReading] = 0;
-	}
-
-	ads.begin(D6, D5);
-
-	// both of these two work, it seems
-	// Wire.setClock(1000000);
-	twi_setClock(1000000); // FIXME - this definitely works ...
-
-	twi_setClock(3400000); // FIXME - 3.4 MHz !!! it seems to work !!!
-
-	//multiplier = ads.voltsPerBit() * 1000.0F; /* Sets the millivolts per bit */
-
-	/* Use this to set data rate for the 12-bit version (optional)*/
-	// ads.setSPS(ADS1015_DR_3300SPS); // for ADS1015 fastest samples per second is 3300 (default is 1600)
-	/* Use this to set data rate for the 16-bit version (optional)*/
-	ads.setSPS(ADS1115_DR_860SPS); // for ADS1115 fastest samples per second is 860 (default is 128)
-
-	ads.setGain(GAIN_SIXTEEN);
-	ads.startContinuous_Differential_0_1();
-	ads.startContinuous_Differential_2_3();
-};
-
-/* circular buffer, where a new value is added at one end and an onld value is removed from the other end */
-void calcMediaValoriCitite(int newValue, int *existingValue, int *valuesFilterTable, int *index)
-{
-	// subtract the last reading and the current one:
-	*existingValue = *existingValue - valuesFilterTable[*index] + newValue;
-
-	// read from the sensor:
-	valuesFilterTable[*index] = newValue;
-
-	// advance to the next position in the array:
-	*index = *index + 1;
-
-	// if we're at the end of the array...
-	if (*index >= numvaluesFromADC)
-	{
-		// ...wrap around to the beginning:
-		*index = 0;
-	}
-}
 
 void updateCurrentSensorsADC()
 {
@@ -144,42 +150,58 @@ void updateCurrentSensorsADC()
 	int s16ADC0;
 	int s16ADC1;
 
-	unsigned long start = micros();
+	unsigned long time_start = micros();
 	unsigned long end;
 	int pin_val;
+	Serial.print((String)"" + __FILE__ +":" + __LINE__ + ":" + __FUNCTION__ + ":");
 
 	if (inputADCtoReadFrom == 0)
 	{
-		while (pin_val = digitalRead(D7))
-			delay(0);
+		static unsigned int timeoutCounter = 0;
+		while ((pin_val = digitalRead(D7)) && (timeoutCounter++ < 500)) // FIXED stuck pin can cause infinite wait
+			yield();
+		if (timeoutCounter > 4000)
+		{
+			timeoutCounter = 0;
+			initCurrentSensorsADC(); // reinit I2C communication with ADC sensor
+			Serial.print("Reset ADCs\n");
+		}
 
 		readVal0 = ads.readADC_Differential_0_1();
+
 		avg0 = (199.0 * avg0 + readVal0) / 200.0; // prime numbers
 		s16ADC0 = readVal0 - avg0;
 		calcMediaValoriCitite(s16ADC0 * s16ADC0, &computedADC0, valuesFromADC0, &indexFilter0);
 	}
 	else
 	{
-		while (pin_val = digitalRead(D7))
-			delay(0);
+		static unsigned int timeoutCounter = 0;
+		while ((pin_val = digitalRead(D7)) && (timeoutCounter++ < 500)) // FIXED stuck pin can cause infinite wait
+			yield();
+		if (timeoutCounter > 4000) // error condition
+		{
+			timeoutCounter = 0;
+			initCurrentSensorsADC(); // reinit I2C communication with ADC sensor
+			Serial.print("Reset ADCs\n");
+		}
 
 		readVal1 = ads.readADC_Differential_2_3();
+
 		avg1 = (199.0 * avg1 + readVal1) / 200.0; // yeah, prime numbers... again
 		s16ADC1 = readVal1 - avg1;
 		calcMediaValoriCitite(s16ADC1 * s16ADC1, &computedADC1, valuesFromADC1, &indexFilter1);
 	}
 
 	end = micros();
-	int elapsed = (int)end - start;
+	int elapsed = (int)end - time_start;
 
 	inputADCtoReadFrom = 1 - inputADCtoReadFrom;
 
-	checkStableADCs(computedADC0, computedADC1);
+	checkStabilityConditionForADCs(computedADC0, computedADC1);
 
 	static int cnt = 0;
 	if (cnt == 0)
 	{
-		// Serial.print((String)"" + __FILE__ +":" + __LINE__ + ":" + __FUNCTION__ + ":");
 		Serial.printf("ADC value: % d - %dus ", pin_val, elapsed);
 		Serial.print(computedADC0 / (float)numvaluesFromADC);
 		Serial.print(" ");
@@ -187,19 +209,22 @@ void updateCurrentSensorsADC()
 		Serial.print(" ");
 		Serial.print((stableADC0 && stableADC1) * 5000);
 		Serial.print(" ");
-		Serial.print((float)readVal0 * multiplier);
+		Serial.print((float)readVal0 * fVoltsPerBitADC);
 		Serial.print(" ");
-		Serial.print((float)readVal1 * multiplier);
+		Serial.print((float)readVal1 * fVoltsPerBitADC);
+		
+#if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
 		Serial.print(" ");
 		Serial.print(gateState * 1000);
+#endif
 
 		// [fisier.c][line_no][function_name]
 
 		// Serial.print(" ");
-		// Serial.print(readVal0 * multiplier);
+		// Serial.print(readVal0 * fVoltsPerBitADC);
 
 		// Serial.print(" ");
-		// Serial.print(readVal1 * multiplier);
+		// Serial.print(readVal1 * fVoltsPerBitADC);
 
 		Serial.println(" -50 50 "); // graphical scale
 	}

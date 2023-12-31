@@ -17,7 +17,7 @@ extern char temperatureCString[];
 
 /* ----------- FUNCTIONS section -------------- */
 extern void initTempSensor();
-extern void updateTemp();
+extern void updateTemps();
 #endif
 
 /* -- no code below this line */

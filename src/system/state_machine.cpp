@@ -41,7 +41,7 @@ current_state_t local_SM;
 /* ----------- FUNCTIONS -------------- */
 void vDoInitSM()
 {
-    Serial.begin(250000);
+    Serial.begin(9600);
     delay(100);
     Serial.println("------------------------------------------------------");
     // Serial.print((String) "[" + __FUNCTION__ + "]");
@@ -74,8 +74,8 @@ inline void vDoHadlePeriodicTasksRunningWifi()
     //Serial.println(timestamp);
 
 #if defined(ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP) && (ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP == true)
-    updateTemp();
-    Serial.print("Temperature: ");
+    updateTemps();
+    Serial.print("Temperatures: ");
     Serial.println(temperatureCString);
 #endif
 
@@ -94,13 +94,11 @@ inline void vDoHadlePeriodicTasksRunningWifi()
     //Serial.print("ADC value: ");
     //getSeed();
 
+#if defined(ENABLE_MODULE_SENSORS_CURRENT) && (ENABLE_MODULE_SENSORS_CURRENT == true)
     updateCurrentSensorsADC();
+#endif
 
-    static char cycle = 0;
-
-    if (cycle == 0)
-        sendAdcSensorDataUDP();
-    cycle = (cycle + 1) % 251; // print every Nth task ~ 1 second
+    sendAdcSensorDataUDP();
 }
 
 void update_SM_STATE_NO_INIT()
@@ -241,7 +239,7 @@ void doExecute()
 
             if (ulSysTaskCnt % 25 == 0)
             {
-                // Serial.printf("CPU Load: %.2f \n", fCpuLoad);
+                Serial.printf("CPU Load: %.2f \n", fCpuLoad);
             }
             // Serial.println(u8CpuLoad);
 

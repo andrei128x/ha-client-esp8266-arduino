@@ -12,7 +12,7 @@
 #endif
 
 #include "com.h"
-#include "../devices\gate_controlller.h"
+#include "../devices/gate_controlller.h"
 #include "../system/storage.h"
 
 #include <WiFiUdp.h>
@@ -28,7 +28,7 @@ WiFiUDP udpModule;
 #if defined(DEV_WAKE_ON_LAN) && (DEV_WAKE_ON_LAN == true)
 
 byte fill[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-//byte mac[] = { 0x00, 0x1b, 0x38, 0x3d, 0xa5, 0x04 };
+// byte mac[] = { 0x00, 0x1b, 0x38, 0x3d, 0xa5, 0x04 };
 byte mac[] = {0x00, 0x19, 0x99, 0xff, 0x69, 0x2b};
 #endif
 
@@ -93,19 +93,29 @@ void cyclicHandleRxUDP()
 void sendAdcSensorDataUDP()
 {
 
-	cycleHandleServo(); // TODO cycleHandleServo() <- find out if this is the correct place to call this function
-	sprintf(jsonData, jsonTemplate, ulSysTaskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, (int)(stableADC0 && stableADC1), (int)gateState, WiFi.RSSI());
+	static char cycle = 0;
 
-	// udpModule.beginPacket(LOCAL_UDP_CONTROLLER_ADDRESS, UDP_PORT); // FIXME add API to add forwarding IP or auto-discover method (preferred) for device
-	// udpModule.write(jsonData, strlen(jsonData));
-	// int result = udpModule.endPacket();
+	if (cycle == 0)
+	{
 
-	int result = sendUdpMessage(jsonData);
+#if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
+		cycleHandleServo(); // TODO cycleHandleServo() <- find out if this is the correct place to call this function
+		sprintf(jsonData, jsonTemplate, ulSysTaskCnt, computedADC0, computedADC1, avg0, avg1, readVal0, readVal1, (int)(stableADC0 && stableADC1), (int)gateState, WiFi.RSSI());
+#endif
 
-	if (result)
-		setActivityStateLED(ACTIVITY_START);
-	else
-		setActivityStateLED(ACTIVITY_STOPPED);
+		// udpModule.beginPacket(LOCAL_UDP_CONTROLLER_ADDRESS, UDP_PORT); // FIXME add API to add forwarding IP or auto-discover method (preferred) for device
+		// udpModule.write(jsonData, strlen(jsonData));
+		// int result = udpModule.endPacket();
+
+		int result = sendUdpMessage(jsonData);
+
+		if (result)
+			setActivityStateLED(ACTIVITY_START);
+		else
+			setActivityStateLED(ACTIVITY_STOPPED);
+	}
+
+	cycle = (cycle + 1) % 251; // print every Nth task
 }
 
 /* ---END OF FILE --- */

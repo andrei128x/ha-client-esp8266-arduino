@@ -106,7 +106,8 @@ void checkWarmFlag()
 	/* WARM reset not found */
 	if (u32WarmResetPattern != *((int *)"MRAW"))
 	{
-		u32WarmResetPattern = *((int *)"MRAW"); /* update pattern in ResetSafe to WARM, reversed due to endianness */
+		/* update pattern in ResetSafe to "WARM" (used as 32bit int), reversed due to endianness */
+		u32WarmResetPattern = *((int *)"MRAW");
 		u32TotalUptimeMS = 0;
 		u32ResetCounter = 0;
 	}
