@@ -2,6 +2,7 @@
     "C_Cpp.errorSquiggles": "Enabled",
     "arduino.path": "",
     "files.associations": {
+        "*.html.tpl": "html",
         "cstring": "cpp",
         "typeinfo": "cpp",
         "*.inc": "cpp",
@@ -12,6 +13,14 @@
         "unordered_map": "cpp",
         "vector": "cpp",
         "initializer_list": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "forward_list": "cpp",
+        "string_view": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "regex": "cpp",
+        "*.tcc": "cpp",
+        "optional": "cpp",
+        "system_error": "cpp"
     }
 }

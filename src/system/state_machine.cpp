@@ -1,6 +1,7 @@
 /* STATE MACHINE unit */
 #include "../init/setup.h"
 #include "./state_machine.h"
+#include "../com/com.h"
 
 /* ----------- DEFINES ------------- */
 
@@ -38,14 +39,18 @@ transition_t transition_table[] = {
 
 current_state_t local_SM;
 
+static Com &ComInstance = Com::getInstance();
+
 /* ----------- FUNCTIONS -------------- */
 void vDoInitSM()
 {
-    Serial.begin(9600);
+    Serial.begin(74880);
     delay(100);
     Serial.println("------------------------------------------------------");
     // Serial.print((String) "[" + __FUNCTION__ + "]");
     DBG("");
+
+    /* set initial state */
     strcpy(local_SM.name, transition_table[SM_STATE_NO_INIT].verbose_name);
     local_SM.sm_id = SM_STATE_NO_INIT;
     local_SM.init = false;
@@ -75,7 +80,7 @@ inline void vDoHadlePeriodicTasksRunningWifi()
 
 #if defined(ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP) && (ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP == true)
     updateTemps();
-    Serial.print("Temperatures: ");
+    // Serial.print("Temperatures: ");
     Serial.println(temperatureCString);
 #endif
 
@@ -87,7 +92,7 @@ inline void vDoHadlePeriodicTasksRunningWifi()
 #if defined(ENABLE_MODULE_MOTOR) && (ENABLE_MODULE_MOTOR == true)
     updateMotorSpeed(); //motor features NOT integrated
 #endif
-    //Serial.printf("%d ms\n",u32LastExecutionTime);
+    //Serial.printf("%d ms\n",u32NextTaskTime);
 
     //sendWakeOnLan();
 
@@ -98,7 +103,7 @@ inline void vDoHadlePeriodicTasksRunningWifi()
     updateCurrentSensorsADC();
 #endif
 
-    sendAdcSensorDataUDP();
+    ComInstance.sendAdcSensorDataUDP();
 }
 
 void update_SM_STATE_NO_INIT()
@@ -140,7 +145,7 @@ void update_SM_STATE_RUNNING_WIFI()
 
     cyclicHandleOTA();
     cyclicHandleWebRequests();
-    cyclicHandleRxUDP();
+    ComInstance.cyclicHandleRxUDP();
 
     vDoHadlePeriodicTasksRunningWifi();
 
@@ -210,10 +215,9 @@ void doExecute()
     }
     else
     {
-        static unsigned long u32LastExecutionTime = 0; // first task starts as soon as possible
-
         unsigned long u32CurrentTaskEntryTime = micros();
-        unsigned long delta = u32CurrentTaskEntryTime - u32LastExecutionTime;
+
+        static unsigned long u32NextTaskTime = u32CurrentTaskEntryTime; // first task starts as soon as possible
 
         unsigned long u32CurrentTaskEndTime;
         float fCpuLoad;
@@ -224,7 +228,7 @@ void doExecute()
         // SYS_START_MEASUREMENT();
 
         //more than TASK_CYCLIC_INTERVAL has passed since last execution
-        if (delta >= TASK_CYCLIC_INTERVAL * 1000)
+        if (u32CurrentTaskEntryTime >= u32NextTaskTime)
         {
 
             /* execute periodic function for current state */
@@ -234,13 +238,16 @@ void doExecute()
             /* calculate CPU load here */
             u32CurrentTaskEndTime = micros();
 
-            fCpuLoad = (u32CurrentTaskEndTime - u32CurrentTaskEntryTime) * 100 / (u32CurrentTaskEntryTime - u32LastExecutionTime);
-            u32LastExecutionTime = u32CurrentTaskEntryTime;
+            fCpuLoad = (u32CurrentTaskEndTime - u32CurrentTaskEntryTime) * 100 / (TASK_CYCLIC_INTERVAL * 1000);
+            u32NextTaskTime = u32CurrentTaskEntryTime + (TASK_CYCLIC_INTERVAL * 1000);
 
-            if (ulSysTaskCnt % 25 == 0)
+            /*
+            if (ulSysTaskCnt % 1 == 0)
             {
                 Serial.printf("CPU Load: %.2f \n", fCpuLoad);
             }
+            */
+
             // Serial.println(u8CpuLoad);
 
             //save time after reading

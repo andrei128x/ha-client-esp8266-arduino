@@ -158,7 +158,7 @@ void updateCurrentSensorsADC()
 	if (inputADCtoReadFrom == 0)
 	{
 		static unsigned int timeoutCounter = 0;
-		while ((pin_val = digitalRead(D7)) && (timeoutCounter++ < 500)) // FIXED stuck pin can cause infinite wait
+		while ((pin_val = digitalRead(D7)) && (timeoutCounter++ < 500)) // stuck pin can cause infinite wait
 			yield();
 		if (timeoutCounter > 4000)
 		{
@@ -176,7 +176,7 @@ void updateCurrentSensorsADC()
 	else
 	{
 		static unsigned int timeoutCounter = 0;
-		while ((pin_val = digitalRead(D7)) && (timeoutCounter++ < 500)) // FIXED stuck pin can cause infinite wait
+		while ((pin_val = digitalRead(D7)) && (timeoutCounter++ < 500)) // stuck pin can cause infinite wait
 			yield();
 		if (timeoutCounter > 4000) // error condition
 		{

@@ -153,6 +153,7 @@ void serverHandleReboot()
 void serverHandleSetForwardingIP()
 {
     //TODO implement API for saving Forwarding UDP IP
+    // TODO clarify if still relevant (2024.02) - IP to where UDP messages will be sent ?! forgot...
 }
 
 #if defined(ENABLE_MODULE_GATE_CONTROLLER) && (ENABLE_MODULE_GATE_CONTROLLER == true)
