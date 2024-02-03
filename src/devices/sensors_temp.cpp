@@ -26,7 +26,7 @@ DallasTemperature sensors_DS18B20(&oneWire);
 float tempC = -150;
 char temperatureCString[128] = "[]";
 
-byte sensorsCount = 0; // should enumerate only DS18B20 (enumerate all, then filter only the temperature sensors), but... yeah
+byte sensorsCount = 0; // total count of DS18B20 devices
 
 unsigned char deviceList[TOTAL_DEVICES][ONE_WIRE_ADDR_SIZE] = {0};
 
@@ -88,7 +88,7 @@ void updateTemps()
 		strcat(tempData, " ]");
 		strcat(temperatureCString, tempData);
 		
-		bzero(tempData, std::size(tempData));
+		bzero(tempData, sizeof(tempData));
 		tempData[0] = 0;
 		strcat(tempData, "[ ");
 	}

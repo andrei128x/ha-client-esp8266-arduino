@@ -1,8 +1,10 @@
 #include "./setup.h"
 #include "../system/system.h"
+#include "../com/com.h"
 
 /*------------ VARIABLES -------------- */
 IPAddress myIP;
+static Com &ComInstance = Com::getInstance();
 
 /* FUNCTIONS unit */
 void globalInitNoWiFi()
@@ -28,8 +30,8 @@ void globalInitNoWiFi()
 
 	initStorageEEPROM();
 	WiFi.begin(global_ssid, global_password);
-	//FIXME fix storage shit !!
-	// WiFi.begin(storedDataEEPROM.SSID, storedDataEEPROM.password);
+	// FIXME fix storage shit !!
+	//  WiFi.begin(storedDataEEPROM.SSID, storedDataEEPROM.password);
 
 	Serial.println("Connecting to WiFi...");
 	Serial.print("Using SSID: ");
@@ -42,13 +44,12 @@ void globalInitNoWiFi()
 	Serial.println(global_password);
 }
 
-
 void globalInitWiFiAvailable()
 {
-	//FIXME - fix eeprom storage
-	// Serial.println(storedDataEEPROM.password);
-	// Serial.print(", length is ");
-	// Serial.println(strlen(storedDataEEPROM.password));
+	// FIXME - fix eeprom storage
+	//  Serial.println(storedDataEEPROM.password);
+	//  Serial.print(", length is ");
+	//  Serial.println(strlen(storedDataEEPROM.password));
 
 	// boolean isIdentical = (strcmp(storedDataEEPROM.SSID, global_ssid) == 0) && (strcmp(storedDataEEPROM.password, global_password) == 0);
 	// Serial.print("SSID and password comparison result: ");
@@ -86,6 +87,9 @@ void globalInitWiFiAvailable()
 	/* setup the OTA server */
 	startOTA(global_host);
 
+	/* init UDP communication */
+	ComInstance.initUDP();
+
 #if defined(ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP) && (ENABLE_MODULE_SENSORS_ONE_WIRE_TEMP == true) // OneWire ENABLED
 	/* start sensors */
 	initTempSensor();
@@ -104,11 +108,11 @@ void globalInitWiFiAvailable()
 	/* init the web server */
 	initWebServer();
 
+	Serial.println(" XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ");
 	// UDP and other stuff
-	initCOM();
 
 	/* init the SECURE RANDOM module */
-	//void vInitADC();
+	// void vInitADC();
 
 #if defined(ENABLE_MODULE_SENSORS) && (ENABLE_MODULE_SENSORS == true)
 	/* init the ADC sensors */
@@ -120,8 +124,8 @@ void globalInitWiFiAvailable()
 	Serial.println("------------------------------------------------------");
 
 	/* reset soft AP */
-	//WiFi.softAPdisconnect(true);
-	//WiFi.enableAP(false);
+	// WiFi.softAPdisconnect(true);
+	// WiFi.enableAP(false);
 }
 
 /* ---END OF FILE --- */
